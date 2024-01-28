@@ -151,9 +151,6 @@ if DEBUG:
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
-    # 'DEFAULT_PARSER_CLASSES': [
-    #     'rest_framework.parsers.JSONParser',
-    # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -164,6 +161,7 @@ REST_FRAMEWORK = {
     ),
     'SEARCH_PARAM': 'search',
     'ORDERING_PARAM': 'ordering',
+    'EXCEPTION_HANDLER': 'handler.custom_exception_handler'
 }
 
 SPECTACULAR_SETTINGS = {
