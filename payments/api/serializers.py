@@ -1,15 +1,29 @@
-
 import datetime
 
 from rest_framework import serializers
 
-from ..models import Transaction
+from ..models import Transaction, TransactionOfOrganizer, EventPaymentBill
+from events.api.serializers import TicketTypeSerializer
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    ticket_type = TicketTypeSerializer()
+
     class Meta:
         model = Transaction
-        fields = '__all__'
+        exclude = ['user', 'rsvp']
+
+
+class TransactionOfOrganizerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionOfOrganizer
+        fields = "__all__"
+
+
+class EventPaymentBillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventPaymentBill
+        fields = "__all__"
 
 
 def check_expiry_month(value):
@@ -34,7 +48,6 @@ def check_payment_method(value):
         raise serializers.ValidationError("Invalid payment_method.")
 
 
-
 class CardInformationSerializer(serializers.Serializer):
     card_number = serializers.CharField(max_length=150, required=True)
     expiry_month = serializers.CharField(
@@ -53,4 +66,3 @@ class CardInformationSerializer(serializers.Serializer):
         validators=[check_cvc],
     )
     # email = serializers.EmailField(required=True)
-

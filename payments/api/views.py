@@ -1,13 +1,31 @@
-
-from rest_framework import generics, filters, permissions, status
-from ..models import Transaction
-from .serializers import TransactionSerializer, CardInformationSerializer
 import stripe
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.conf import settings
 from decouple import config
+from django.conf import settings
 from django.shortcuts import redirect
+from rest_framework import filters, generics, permissions, status
+from rest_framework.exceptions import NotAcceptable
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from events.models import TicketType
+
+from ..models import EventPaymentBill, Transaction, TransactionOfOrganizer
+from .serializers import (CardInformationSerializer,
+                          EventPaymentBillSerializer,
+                          TransactionOfOrganizerSerializer,
+                          TransactionSerializer)
+
+stripe.api_key = config("STRIPE_SECRET_KEY")
+
+
+class EventPaymentBillListView(generics.ListAPIView):
+    queryset = EventPaymentBill.objects.all()
+    serializer_class = EventPaymentBillSerializer
+
+
+class EventPaymentBillDetailView(generics.RetrieveAPIView):
+    queryset = EventPaymentBill.objects.all()
+    serializer_class = EventPaymentBillSerializer
 
 
 class TransactionListCreateView(generics.ListCreateAPIView):
@@ -18,6 +36,75 @@ class TransactionListCreateView(generics.ListCreateAPIView):
 class TransactionDetailView(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+
+
+class TransactionOfOrganizerListCreateView(generics.ListCreateAPIView):
+    queryset = TransactionOfOrganizer.objects.all()
+    serializer_class = TransactionOfOrganizerSerializer
+
+
+class TransactionOfOrganizerDetailView(generics.RetrieveAPIView):
+    queryset = TransactionOfOrganizer.objects.all()
+    serializer_class = TransactionOfOrganizerSerializer
+
+
+class TicketCheckoutApiView(APIView):
+    """
+    To buy tickets - [(event_id, ticket_id), quantity of tickets]
+
+    {
+        "event_id": 5,
+        "ticket_id": 4,
+        "quantity": 1
+    }
+    """
+
+    serializer_class = None
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        if "event_id" in data and "ticket_id" in data:
+            try:
+                ticket_obj = TicketType.objects.get(
+                    id=data["ticket_id"], event__id=data["event_id"]
+                )
+            except TicketType.DoesNotExist:
+                return Response(
+                    {"error": "Ticket not found for the given event."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            if ticket_obj.stripe_price_id:
+                try:
+                    checkout_session = stripe.checkout.Session.create(
+                        line_items=[
+                            {
+                                "price": ticket_obj.stripe_price_id,
+                                "quantity": data["quantity"],
+                            },
+                        ],
+                        payment_method_types=[
+                            "card",
+                        ],
+                        mode="payment",
+                        success_url=settings.SITE_URL
+                        + "/?success=true&session_id={CHECKOUT_SESSION_ID}",
+                        cancel_url=settings.SITE_URL + "/?canceled=true",
+                    )
+                except stripe.error.StripeError:
+                    return Response(
+                        {"error": "Something went wrong in payment session"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+
+                return redirect(checkout_session.url)
+            else:
+                return Response(
+                    {"error": "Stripe price ID is missing for the ticket."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            raise NotAcceptable("Please check your input correctly.")
 
 
 # class PaymentAPI(APIView):
@@ -98,35 +185,3 @@ class TransactionDetailView(generics.RetrieveAPIView):
 #             }
 
 #         return response
-
-
-stripe.api_key = config('STRIPE_SECRET_KEY')
-
-
-class TicketCheckoutApiView(APIView):
-    """
-    To buy tickets - [(event_id, ticket_id), quantity of tickets]
-    """
-
-    def post():
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                line_items=[
-                    {
-                        # should be dynamically created
-                        'price': 'price_1ObglkSE7WiyHfjrwTLY4jZN',
-                        'quantity': 1,
-                    },
-                ],
-                payment_method_types=['card'],
-                mode='payment',
-                success_url=settings.SITE_URL +
-                '/?success=true&session_id={CHECKOUT_SESSION_ID}',
-                cancel_url=settings.SITE_URL + '/?canceled=true',
-            )
-        except:
-            return Response(
-                {'error': 'Something went wrong in payment session'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return redirect(checkout_session.url)

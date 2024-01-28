@@ -10,3 +10,6 @@ supabase==2.3.4
 pillow==10.2.0
 segno==1.6.0
 forex-python==1.8
+celery[redis]==5.3.6
+django-celery-results==2.5.1
+pytest-django==4.7.0
