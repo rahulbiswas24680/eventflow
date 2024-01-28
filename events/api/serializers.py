@@ -1,15 +1,13 @@
-
 from forex_python.converter import CurrencyRates
 from rest_framework import serializers
-
+from typing import List
 from ..models import RSVP, Event, TicketType, EventImage
 
 
 class EventImageSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = EventImage
-        fields = ('image',)
+        fields = ("image",)
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -17,7 +15,21 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = "__all__"
+
+
+class EventDetailSerializer(serializers.ModelSerializer):
+    images = EventImageSerializer(many=True, read_only=True)
+    tickets_details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+    def get_tickets_details(self, obj) -> List[dict]:
+        qs = TicketType.objects.filter(event=obj).order_by("price")
+        serialized = TicketTypeSerializer(qs, many=True)
+        return serialized.data
 
 
 class CurrencyAwareDecimalField(serializers.DecimalField):
@@ -26,7 +38,7 @@ class CurrencyAwareDecimalField(serializers.DecimalField):
     """
 
     def __init__(self, *args, **kwargs):
-        self.currency_field = kwargs.pop('currency_field', None)
+        self.currency_field = kwargs.pop("currency_field", None)
         super().__init__(*args, **kwargs)
 
     def to_representation(self, value):
@@ -50,7 +62,7 @@ def convert_to_base_currency(amount, currency):
     # In this example, we use the forex-python library
     c = CurrencyRates()
     # Convert to INR as an example
-    conversion_rate = c.get_rate(currency, 'INR')
+    conversion_rate = c.get_rate(currency, "INR")
     converted_amount = amount * conversion_rate
     return converted_amount
 
@@ -63,10 +75,11 @@ class TicketTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TicketType
-        fields = '__all__'
+        # fields = "__all__"
+        exclude = ["created_at", "stripe_price_id"]
 
 
 class RSVPSerializer(serializers.ModelSerializer):
     class Meta:
         model = RSVP
-        fields = '__all__'
+        fields = "__all__"

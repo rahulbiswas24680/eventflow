@@ -40,5 +40,4 @@ class TicketTypeAnalytics(models.Model):
         return self.ticket_type + '-' + self.tickets_sold + ' sold'
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)

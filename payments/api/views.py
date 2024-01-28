@@ -3,17 +3,21 @@ from decouple import config
 from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import filters, generics, permissions, status
-from rest_framework.exceptions import NotAcceptable
+from rest_framework.exceptions import NotFound, NotAcceptable
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from events.models import TicketType
-
+from choices import (
+    PAYMENT_STATUS_CHOICES,
+)
+from events.models import TicketType, RSVP
+from qr_codes.models import QRCode
 from ..models import EventPaymentBill, Transaction, TransactionOfOrganizer
-from .serializers import (CardInformationSerializer,
-                          EventPaymentBillSerializer,
-                          TransactionOfOrganizerSerializer,
-                          TransactionSerializer)
+from .serializers import (
+    CardInformationSerializer,
+    EventPaymentBillSerializer,
+    TransactionOfOrganizerSerializer,
+    TransactionSerializer,
+)
 
 stripe.api_key = config("STRIPE_SECRET_KEY")
 
@@ -63,48 +67,92 @@ class TicketCheckoutApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        if "event_id" in data and "ticket_id" in data:
-            try:
-                ticket_obj = TicketType.objects.get(
-                    id=data["ticket_id"], event__id=data["event_id"]
-                )
-            except TicketType.DoesNotExist:
-                return Response(
-                    {"error": "Ticket not found for the given event."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+        event_id = data.get("event_id")
+        ticket_id = data.get("ticket_id")
+        quantity = data.get("quantity")
 
-            if ticket_obj.stripe_price_id:
-                try:
-                    checkout_session = stripe.checkout.Session.create(
-                        line_items=[
-                            {
-                                "price": ticket_obj.stripe_price_id,
-                                "quantity": data["quantity"],
-                            },
-                        ],
-                        payment_method_types=[
-                            "card",
-                        ],
-                        mode="payment",
-                        success_url=settings.SITE_URL
-                        + "/?success=true&session_id={CHECKOUT_SESSION_ID}",
-                        cancel_url=settings.SITE_URL + "/?canceled=true",
-                    )
-                except stripe.error.StripeError:
-                    return Response(
-                        {"error": "Something went wrong in payment session"},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+        if not (event_id and ticket_id and quantity):
+            raise NotAcceptable(
+                "Please provide event_id, ticket_id, and quantity in the request."
+            )
 
-                return redirect(checkout_session.url)
-            else:
-                return Response(
-                    {"error": "Stripe price ID is missing for the ticket."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-        else:
-            raise NotAcceptable("Please check your input correctly.")
+        try:
+            ticket_obj = TicketType.objects.get(
+                id=ticket_id, event__id=event_id
+            )
+        except TicketType.DoesNotExist:
+            raise NotFound("Ticket not found for the given event.")
+
+        if not ticket_obj.stripe_price_id:
+            return Response(
+                {"error": "Stripe price ID is missing for the ticket."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        "price": ticket_obj.stripe_price_id,
+                        "quantity": quantity,
+                    },
+                ],
+                payment_method_types=[
+                    "card",
+                ],
+                mode="payment",
+                success_url=settings.SITE_URL
+                + "/?success=true&session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=settings.SITE_URL + "/?canceled=true",
+            )
+        except stripe.error.StripeError:
+            return Response(
+                {"error": "Something went wrong in payment session"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        rsvp_obj = rsvp_create(ticket_obj, request.user)
+        transaction_obj = transaction_create(
+            checkout_session, ticket_obj, rsvp_obj, quantity
+        )
+        link_with_qrcode(transaction_obj)
+
+        return redirect(checkout_session.url)
+
+
+def rsvp_create(ticket_obj, user):
+    return RSVP.objects.create(event=ticket_obj.event, attendee=user)
+
+
+def transaction_create(checkout_session, ticket_obj, rsvp_obj, quantity):
+    transaction_obj = Transaction.objects.create(
+        user=rsvp_obj.attendee,
+        rsvp=rsvp_obj,
+        ticket_type=ticket_obj.ticket_type,
+        currency=ticket_obj.currency,
+        amount=ticket_obj.amount,
+        quantity=quantity,
+        transaction_id=checkout_session.id,
+        payment_status=PAYMENT_STATUS_CHOICES[0][0],
+    )
+    return transaction_obj
+
+
+def link_with_qrcode(transaction_obj):
+    code_data = f"""//////
+{transaction_obj.ticket_type.name}-
+{transaction_obj.currency}-
+{transaction_obj.amount}-
+{transaction_obj.quantity}-
+{transaction_obj.payment_status}-
+{transaction_obj.rsvp.id}-
+{transaction_obj.transaction_id}
+//////
+"""
+    qr_obj = QRCode.objects.create(
+        transaction=transaction_obj, code_data=code_data
+    )
+    return qr_obj
 
 
 # class PaymentAPI(APIView):

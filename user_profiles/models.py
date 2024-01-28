@@ -25,7 +25,6 @@ class UserProfile(models.Model):
         return self.user.first_name + '- Profile'
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)
 
 
@@ -43,5 +42,4 @@ class UserRSVPHistory(models.Model):
         return 'RSVP History - ' + self.user_profile.user.username
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)

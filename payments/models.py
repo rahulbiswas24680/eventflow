@@ -12,7 +12,7 @@ from events.models import Event, TicketType, RSVP
 class EventPaymentBill(models.Model):
     """Event Payment Bill for event organizers"""
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     currency = models.CharField(
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
@@ -38,7 +38,6 @@ class EventPaymentBill(models.Model):
         return self.event.organizer.username + "-" + self.amount
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)
 
     def create_stripe_bill_for_organising_event(self):
@@ -55,6 +54,7 @@ class Transaction(models.Model):
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    quantity = models.PositiveBigIntegerField(default=1) 
     payment_method = models.CharField(
         choices=PAYMENT_METHOD_CHOICES, max_length=30, blank=True, null=True
     )
@@ -84,7 +84,6 @@ class Transaction(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)
 
 
@@ -125,5 +124,4 @@ class TransactionOfOrganizer(models.Model):
         return self.event_bill.event.organizer.username + "-" + self.amount
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
         super().save(*args, **kwargs)
