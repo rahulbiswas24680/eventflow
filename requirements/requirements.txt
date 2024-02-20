@@ -69,6 +69,12 @@ djangorestframework-simplejwt==5.3.1
     # via -r ./requirements/requirements.in
 drf-spectacular==0.27.1
     # via -r ./requirements/requirements.in
+factory-boy==3.3.0
+    # via pytest-factoryboy
+faker==22.5.1
+    # via
+    #   -r ./requirements/requirements.in
+    #   factory-boy
 forex-python==1.8
     # via -r ./requirements/requirements.in
 gotrue==2.1.0
@@ -90,7 +96,9 @@ idna==3.6
     #   httpx
     #   requests
 inflection==0.5.1
-    # via drf-spectacular
+    # via
+    #   drf-spectacular
+    #   pytest-factoryboy
 iniconfig==2.0.0
     # via pytest
 jsonschema==4.21.1
@@ -122,12 +130,17 @@ pydantic-core==2.14.6
 pyjwt==2.8.0
     # via djangorestframework-simplejwt
 pytest==8.0.0
-    # via pytest-django
+    # via
+    #   pytest-django
+    #   pytest-factoryboy
 pytest-django==4.7.0
+    # via -r ./requirements/requirements.in
+pytest-factoryboy==2.6.0
     # via -r ./requirements/requirements.in
 python-dateutil==2.8.2
     # via
     #   celery
+    #   faker
     #   realtime
     #   storage3
 python-decouple==3.8
@@ -178,6 +191,7 @@ typing-extensions==4.9.0
     # via
     #   pydantic
     #   pydantic-core
+    #   pytest-factoryboy
     #   realtime
     #   storage3
     #   stripe

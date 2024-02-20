@@ -46,5 +46,5 @@ class SupportTicket(models.Model):
         return self.subject[:20] + ' -' + self.user.email 
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
+        
         super().save(*args, **kwargs)
