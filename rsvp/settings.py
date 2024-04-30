@@ -92,11 +92,14 @@ WSGI_APPLICATION = 'rsvp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': (config("ENGINE")),
+        'NAME': (config("NAME")),
+        'USER': (config("USER")),
+        'PASSWORD': (config("PASSWORD")),
+        'HOST': (config("HOST")),
+        'PORT': (config("PORT")),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -161,7 +164,7 @@ REST_FRAMEWORK = {
     ),
     'SEARCH_PARAM': 'search',
     'ORDERING_PARAM': 'ordering',
-    'EXCEPTION_HANDLER': 'handler.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'rsvp.handlers.custom_exception_handler'
 }
 
 SPECTACULAR_SETTINGS = {
