@@ -19,6 +19,10 @@ from django.urls import include, path
 from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
                                    SpectacularSwaggerView)
 
+
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     # administration
     path('admin/', admin.site.urls),
@@ -38,3 +42,7 @@ urlpatterns = [
     path('api/communication/', include('communication.api.urls')),
     path('api/support/', include('support.api.urls')),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
