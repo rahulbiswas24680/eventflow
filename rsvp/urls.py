@@ -24,40 +24,40 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-
-urlpatterns = [
-    # administration
-    path("admin/", admin.site.urls),
-    path("api/", include("api_urls"), name="api_urls"),
-    path("", include("http_urls"), name="http_urls"),
-]
-
-
-http_urls = [path("", include("registration.http_urls"))]
-
+from rest_framework.permissions import AllowAny
 
 api_urls = [
     # swagger docs
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
-        "api/swagger-ui/",
-        SpectacularSwaggerView.as_view(url_name="schema"),
+        "swagger-ui/",
+        SpectacularSwaggerView.as_view(
+            url_name="schema", permission_classes=[AllowAny]
+        ),
         name="swagger-ui",
     ),
     path(
-        "api/redoc/",
-        SpectacularRedocView.as_view(url_name="schema"),
+        "redoc/",
+        SpectacularRedocView.as_view(
+            url_name="schema", permission_classes=[AllowAny]
+        ),
         name="redoc",
     ),
-    path("api/user-info/", include("user_profiles.api.urls")),
-    path("api/auth/", include("registration.api.urls")),
-    path("api/events/", include("events.api.urls")),
-    path("api/payments/", include("payments.api.urls")),
-    path("api/qr/", include("qr_codes.api.urls")),
-    path("api/analytics/", include("analytics.api.urls")),
-    path("api/communication/", include("communication.api.urls")),
-    path("api/support/", include("support.api.urls")),
+    path("user-info/", include("user_profiles.api.urls")),
+    path("auth/", include("registration.api.urls")),
+    path("events/", include("events.api.urls")),
+    path("payments/", include("payments.api.urls")),
+    path("qr/", include("qr_codes.api.urls")),
+    path("analytics/", include("analytics.api.urls")),
+    path("communication/", include("communication.api.urls")),
+    path("support/", include("support.api.urls")),
 ]
 
+urlpatterns = [
+    path("api/", include(api_urls)),
+    path("admin/", admin.site.urls),
+
+    path("", include("events.urls")),
+]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

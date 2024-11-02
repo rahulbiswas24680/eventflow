@@ -16,6 +16,11 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = "__all__"
+    
+    def to_representation(self, obj):
+        representation = super().to_representation(obj)
+        representation['organizer'] = obj.organizer.username
+        return representation
 
 
 class EventDetailSerializer(serializers.ModelSerializer):

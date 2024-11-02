@@ -9,40 +9,6 @@ from choices import (
 from events.models import Event, TicketType, RSVP
 
 
-class EventPaymentBill(models.Model):
-    """Event Payment Bill for event organizers"""
-
-    user = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
-    event = models.ForeignKey(Event, on_delete=models.PROTECT)
-    currency = models.CharField(
-        choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
-    )
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    stripe_event_bill_id = models.CharField(
-        max_length=50, blank=True, null=True
-    )
-    has_finished_event = models.BooleanField(
-        default=False, blank=True, null=True
-    )
-    has_completed_payment = models.BooleanField(
-        default=False, blank=True, null=True
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = "Event Payment Bill"
-        verbose_name_plural = "Event Payment Bills"
-
-    def __str__(self):
-        return self.event.organizer.username + "-" + self.amount
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-    def create_stripe_bill_for_organising_event(self):
-        pass
-
 
 class Transaction(models.Model):
     """The Transaction model for evnents and tickets"""
@@ -85,6 +51,48 @@ class Transaction(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+
+
+class EventPaymentBill(models.Model):
+    """
+    Event Payment Bill for event organizers::
+
+    This payment bill happens after completion of an event successful,
+    This Bill is for only Organizer-user
+    
+    """
+
+    user = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
+    event = models.ForeignKey(Event, on_delete=models.PROTECT)
+    currency = models.CharField(
+        choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stripe_event_bill_id = models.CharField(
+        max_length=50, blank=True, null=True
+    )
+    has_finished_event = models.BooleanField(
+        default=False, blank=True, null=True
+    )
+    has_completed_payment = models.BooleanField(
+        default=False, blank=True, null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Event Payment Bill"
+        verbose_name_plural = "Event Payment Bills"
+
+    def __str__(self):
+        return self.event.organizer.username + "-" + self.amount
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def create_stripe_bill_for_organising_event(self):
+        pass
 
 
 class TransactionOfOrganizer(models.Model):

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "rest_framework_simplejwt",
     "django_celery_results",
+    "corsheaders",
     # internal apps
     "events",
     "payments",
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -115,6 +117,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'auth.User' 
+USERNAME_FIELD = 'email'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -160,7 +164,7 @@ REST_FRAMEWORK = {
     ),
     "SEARCH_PARAM": "search",
     "ORDERING_PARAM": "ordering",
-    "EXCEPTION_HANDLER": "handler.custom_exception_handler",
+    "EXCEPTION_HANDLER": "rsvp.handlers.custom_exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -172,8 +176,9 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
     },
-    "COMPONENT_SPLIT_REQUEST": True,
+    "SERVE_PUBLIC": False,
 }
+    
 
 ROOT_URLCONF = "rsvp.urls"
 
@@ -209,3 +214,10 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_RESULT_BACKEND = "django-db"
 # CELERY_CACHE_BACKEND = 'django-cache'
+
+
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = (config("CORS_ORIGIN_WHITELIST")).split(' ')
+
+CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
