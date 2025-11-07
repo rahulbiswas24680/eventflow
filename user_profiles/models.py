@@ -5,12 +5,12 @@ from events.models import RSVP
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
-    groups = models.ManyToManyField(
-        Group,
-        related_name='customuser_groups',
-        blank=True,
-        help_text='The groups this user belongs to.'
-    )
+    # groups = models.ManyToManyField(
+    #     Group,
+    #     related_name='customuser_groups',
+    #     blank=True,
+    #     help_text='The groups this user belongs to.'
+    # )
     user_permissions = models.ManyToManyField(
         Permission,
         related_name='customuser_permissions',
