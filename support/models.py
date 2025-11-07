@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.db import models
 from django.db import models
 from django.utils import timezone
 
@@ -16,7 +17,7 @@ STATUS_CHOICES = (
 
 
 class SupportTicket(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     subject = models.CharField(max_length=255)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,7 +27,7 @@ class SupportTicket(models.Model):
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default='Open')
     assigned_to = models.ForeignKey(
-        User, related_name='assigned_tickets', 
+        settings.AUTH_USER_MODEL, related_name='assigned_tickets', 
         on_delete=models.PROTECT, null=True, blank=True)
 
     resolution = models.TextField(blank=True)

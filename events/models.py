@@ -1,21 +1,29 @@
 
 import stripe
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.db import models
 from django.core.exceptions import ValidationError
 from django.db import models
+import os
+from django.conf import settings
 
-from rsvp.storage import SupabaseStorage
+# from rsvp.storage import SupabaseStorage
 
-s = SupabaseStorage()
+# s = SupabaseStorage()
 
 
 class Event(models.Model):
-    organizer = models.ForeignKey(User, on_delete=models.PROTECT)
+    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateTimeField()
-    location = models.CharField(max_length=255)
+    location = models.TextField(blank=True, null=True)
+    metadata = models.JSONField(null=True, blank=True)
+    is_virtual = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -33,7 +41,7 @@ class Event(models.Model):
 class EventImage(models.Model):
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to='event_img/')
+    image = models.ImageField(upload_to='event_img/%Y/%m/%d/')
 
     def __str__(self):
         return self.event.name + ' - Image'
@@ -74,10 +82,6 @@ class TicketType(models.Model):
     def __str__(self):
         return self.name + '-' + self.event.name
 
-    def clean(self):
-        if s.exists(f"ticket_img/{self.image}"):
-            raise ValidationError('Image already uploaded. Try different one.')
-        super(TicketType, self).clean()
 
     def save(self, *args, **kwargs):
         if not self.stripe_price_id:
@@ -102,10 +106,16 @@ class TicketType(models.Model):
 
 
 class RSVP(models.Model):
+    transaction_id = models.CharField(max_length=30, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
-    attendee = models.ForeignKey(User, on_delete=models.PROTECT)
+    attendee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    is_active = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    is_cancelled = models.BooleanField(default=False)
+    is_refunded = models.BooleanField(default=False)
+    is_expired = models.BooleanField(default=False)
+    metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    # need to link it with event payment transaction details model
 
     class Meta:
         ordering = ['-created_at']

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 from decouple import config
@@ -117,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'auth.User' 
+AUTH_USER_MODEL = 'user_profiles.CustomUser'
 USERNAME_FIELD = 'email'
 
 # Internationalization
@@ -137,6 +137,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 
 # Default primary key field type
@@ -190,7 +192,7 @@ SITE_URL = config("SITE_URL")
 
 
 # supabase config
-DEFAULT_FILE_STORAGE = "rsvp.storage.SupabaseStorage"
+# DEFAULT_FILE_STORAGE = "rsvp.storage.SupabaseStorage"
 SUPABASE_URL = config("SUPABASE_URL")
 SUPABASE_API_KEY = config("SUPABASE_API_KEY")
 SUPABASE_BUCKET = config("SUPABASE_BUCKET")

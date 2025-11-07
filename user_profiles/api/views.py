@@ -1,15 +1,16 @@
 from rest_framework import generics
 
-from ..models import UserProfile, UserRSVPHistory
+from ..models import CustomUser, UserRSVPHistory, Organizer
 from .serializers import (
     UserProfileSerializer,
     UserRSVPHistorySerializer,
     UserRSVPHistoryDetailsSerializer,
+    OrganizerSerializer
 )
 
 
 class UserProfileDetailView(generics.RetrieveAPIView):
-    queryset = UserProfile.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
 
     # def get_serializer_context(self):
@@ -36,3 +37,13 @@ class UserRSVPHistoryDetailView(generics.RetrieveAPIView):
         return (
             super().get_queryset().filter(user_profile__user=self.request.user)
         )
+
+
+class OrganizersListCreateView(generics.ListCreateAPIView):
+    queryset = Organizer.objects.all()
+    serializer_class = OrganizerSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        return super().perform_create(serializer)
+    

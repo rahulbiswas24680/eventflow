@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from user_profiles.models import CustomUser as User
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 

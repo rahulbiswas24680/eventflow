@@ -1,29 +1,85 @@
-<!-- Sidebar -->
-<div id="sidebar" class="sidebar bg-dark pt-5" style="height: 100vh;">
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link active" href="#">
-                <i class="bi bi-house"></i>
-                <span class="sidebar-text">Home</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-gear"></i>
-                <span class="sidebar-text">Settings</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-person"></i>
-                <span class="sidebar-text">Profile</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="sidebar-text">Logout</span>
-            </a>
-        </li>
+
+
+<div id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <i class="bi bi-calendar3-event" style="font-size: xxx-large; color: #9be2b6;"></i>
+      <span class="fs-4 sidebar-text" style="color: #9be2b6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 700;">EventFlow</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li class="nav-item">
+        <a href="{% url 'events-home' %}" class="nav-link active" aria-current="page">
+        <i class="bi bi-speedometer2"></i>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="bi bi-calendar2-event"></i>
+          <span class="sidebar-text">Events</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'organizers-masters' %}" class="nav-link text-white">
+          <i class="bi bi-people-fill"></i>
+          <span class="sidebar-text">Organizers</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+        <i class="bi bi-ticket-perforated-fill"></i>
+          <span class="sidebar-text">Orders</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="bi bi-cash-coin"></i>
+          <span class="sidebar-text">Payments</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="bi bi-person-fill"></i>
+          <span class="sidebar-text">User Settings</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="bi bi-table"></i>
+          <span class="sidebar-text">Reports</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="bi bi-printer"></i>
+          <span class="sidebar-text">Shipping list</span>
+        </a>
+      </li>
     </ul>
-</div>
+    <hr>
+    <div class="dropdown">
+      <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+        <strong class="sidebar-text">mdo</strong>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+        <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle me-2"></i>New project...</a></li>
+        <li><a class="dropdown-item" href="#"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+        <li><a class="dropdown-item" href="#"><i class="bi bi-person-square me-2"></i>Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#">Sign out</a></li>
+      </ul>
+    </div>
+  </div>
+
+
+  <script>
+    $(document).ready(function() {
+      var currentUrl = window.location.href;
+      $('.nav-link').each(function() {
+        if ($(this).attr('href') === currentUrl) {
+          $(this).addClass('active');
+        }
+      });
+    });
+  </script>

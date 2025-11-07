@@ -3,6 +3,8 @@ from .views import (
     UserProfileDetailView,
     UserRSVPHistoryListCreateView,
     UserRSVPHistoryDetailView,
+
+    OrganizersListCreateView,
 )
 
 urlpatterns = [
@@ -25,4 +27,7 @@ urlpatterns = [
         UserRSVPHistoryDetailView.as_view(),
         name="user-rsvp-history-detail",
     ),
+
+
+    path("organizers/", OrganizersListCreateView.as_view(), name="organizers-list"),
 ]

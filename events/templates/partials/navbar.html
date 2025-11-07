@@ -1,37 +1,118 @@
-<nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary">
-    <div class="container">
+<nav class="navbar navbar-expand-lg bg-sidebar-color shadow-sm">
+  <div class="container">
 
-      <a class="navbar-brand" href="#">Navbar</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Dropdown
-            </a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-          </li>
-        </ul>
-        <form class="d-flex" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
+    <a class="navbar-brand" href="#">EventFlow</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="bi bi-eye mx-1"></i>Go to shop</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav d-flex align-items-center">
+        <li class="nav-item">
+          <span class="badge rounded-pill text-bg-primary"><i class="bi bi-question"></i>Support</span>
+        </li>
+        <li class="nav-item mx-3">
+          <a href="" class="d-flex align-items-center text-decoration-none text-secondary">
+            <i class="bi bi-person-fill fs-5"></i>
+            <h6 class="text-secondary my-2">Rahul Biswas</h6>
+          </a>
+        </li>
+        <li class="nav-item mx-3">
+          <a href="" class="text-decoration-none text-secondary font-weight-bold">
+            <i class="bi bi-box-arrow-right fs-4"></i>
+          </a>
+        </li>
+        <li class="nav-item dropdown mx-3">
+          <button class="nav-link dropdown-toggle d-flex align-items-center bg-tertiary" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-calendar-event me-2"></i>
+            <!-- <div class="text-dark">
+              <p class="m-0">Event Name</p>
+              <small class="m-0">25th Nov</small>
+            </div> -->
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- offcanvas static for cart section -->
+<div class="offcanvas offcanvas-end bg-sidebar-color" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop"
+  aria-labelledby="staticBackdropLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="staticBackdropLabel">Your Cart</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div>
+      <ul id="cart-items" class="list-group list-group-flush mb-auto">
+        
+      </ul>
+
+      <hr>
+      <div>
+
       </div>
     </div>
-  </nav>
+  </div>
+</div>
+
+
+
+<script>
+  $(document).ready(function () {
+    let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+
+    function renderCartItems() {
+      // Get cart items from sessionStorage
+      let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+      let cartItemsContainer = $('#cart-items');
+
+      // Clear the container
+      cartItemsContainer.empty();
+
+      // Loop through cart items and append them to the list
+      cart.forEach(item => {
+        let itemHtml = `
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <img class="img-thumbnail" style="width: 5rem;"
+                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlndpwDalSNF8TzBG6T7kGv73l0IOReNJpKw&s" alt="Product Image">
+                        <div>
+                            <h4>${item.name}</h4>
+                            <p>Price: ₹${item.price}</p>
+                            <p>Quantity: ${item.quantity}</p>
+                        </div>
+                    </div>
+                </li>`;
+        // Append item HTML to the cart items container
+        cartItemsContainer.append(itemHtml);
+      });
+    }
+
+
+    if (cart.length > 0) {
+      $('#cart-count').text(cart.length);
+
+      // Initial render of cart items
+      renderCartItems();
+    }
+    console.log(cart);
+  });
+
+</script>

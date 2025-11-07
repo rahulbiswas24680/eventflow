@@ -11,7 +11,7 @@ from communication.tasks.mail_tasks import (
     ongoing_events_mail,
     platform_registration_mail,
 )
-from user_profiles.models import UserProfile
+from user_profiles.models import CustomUser
 
 from .serializers import UserLoginSerializer, UserRegistationSerializer
 from rest_framework.permissions import AllowAny
@@ -39,7 +39,7 @@ def create_user(data, group_names=[]):
         user_obj = serializer.save(
             is_staff=False, is_superuser=False, groups=group_names
         )
-        profile = UserProfile.objects.create(user=user_obj)
+        profile = CustomUser.objects.create(user=user_obj)
 
         return user_obj
     else:

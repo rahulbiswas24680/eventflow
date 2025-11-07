@@ -6,7 +6,7 @@ from rest_framework import serializers
 from events.api.serializers import EventSerializer
 from payments.api.serializers import TransactionSerializer
 
-from ..models import UserProfile, UserRSVPHistory
+from ..models import CustomUser, UserRSVPHistory, Organizer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user_rsvp_history = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = UserProfile
+        model = CustomUser
         fields = "__all__"
 
     def get_user_rsvp_history(self, obj) -> List[Dict]:
@@ -46,7 +46,7 @@ class UserProfileInlineSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
     class Meta:
-        model = UserProfile
+        model = CustomUser
         fields = "__all__"
 
 
@@ -73,3 +73,11 @@ class UserRSVPHistoryDetailsSerializer(serializers.ModelSerializer):
             event_transaction_details_qs, many=True
         ).data
         return data
+
+
+class OrganizerSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Organizer
+        fields = "__all__"

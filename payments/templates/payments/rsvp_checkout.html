@@ -1,0 +1,57 @@
+{% extends "events/base.html" %}}
+
+
+{% block content %}
+
+<div class="container border shadow-sm rounded bg-light my-5">
+    <h3 class="text-center my-3">Checkout Page</h3>
+    <section class="p-5 m-3">
+        <form class="row g-3">
+            <div class="col-md-6">
+              <label for="inputEmail4" class="form-label">Email</label>
+              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@gmail.com">
+            </div>
+            <div class="col-md-6">
+              <label for="inputPhone" class="form-label">Phone</label>
+              <input type="tel" class="form-control" id="inputPhone" pattern="[0-9]{10}" placeholder="7890212212..." maxlength="10">
+            </div>
+            <div class="col-12">
+              <label for="inputAddress" class="form-label">Address</label>
+              <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+            </div>
+            <div class="col-12">
+              <label for="inputAddress2" class="form-label">Address 2</label>
+              <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
+            </div>
+            <div class="col-md-6">
+              <label for="inputCity" class="form-label">City</label>
+              <input type="text" class="form-control" id="inputCity">
+            </div>
+            <div class="col-md-4">
+              <label for="inputState" class="form-label">State</label>
+              <select id="inputState" class="form-select">
+                <option selected>Choose...</option>
+                <option>...</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="inputZip" class="form-label">Zip</label>
+              <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6">
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="gridCheck">
+                <label class="form-check-label" for="gridCheck">
+                  Check me out
+                </label>
+              </div>
+            </div>
+            <div class="col-12 d-flex justify-content-end">
+                <small class="text-secondary p-2 m-2"><i class="bi bi-info-circle mx-2"></i>Powered By <strong> STRIPE</strong> </small>
+              <button type="submit" class="btn btn-success btn-lg">Pay Now <i class="bi bi-arrow-right-circle"></i></button>
+            </div>
+          </form>
+    </section>
+</div>
+
+{% endblock %}

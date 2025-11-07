@@ -11,7 +11,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        exclude = ['user', 'rsvp']
+        exclude = ['user']
 
 
 class TransactionOfOrganizerSerializer(serializers.ModelSerializer):

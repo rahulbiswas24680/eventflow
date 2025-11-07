@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.db import models
 from django.db import models
 import stripe
 from choices import (
@@ -6,15 +7,17 @@ from choices import (
     PAYMENT_METHOD_CHOICES,
     PAYMENT_STATUS_CHOICES,
 )
-from events.models import Event, TicketType, RSVP
+from events.models import Event, TicketType
 
 
+
+# retail user section
 
 class Transaction(models.Model):
     """The Transaction model for evnents and tickets"""
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    rsvp = models.OneToOneField(RSVP, on_delete=models.PROTECT, default=None)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    # rsvp = models.OneToOneField(RSVP, on_delete=models.PROTECT, default=None)
     ticket_type = models.ForeignKey(TicketType, on_delete=models.PROTECT)
     currency = models.CharField(
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
@@ -54,6 +57,11 @@ class Transaction(models.Model):
 
 
 
+
+
+
+# organizers section
+
 class EventPaymentBill(models.Model):
     """
     Event Payment Bill for event organizers::
@@ -63,7 +71,7 @@ class EventPaymentBill(models.Model):
     
     """
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     currency = models.CharField(
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]

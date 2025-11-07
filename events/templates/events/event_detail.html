@@ -3,71 +3,161 @@
 {% block content %}
 
 <section class="container-fluid py-3">
-    <div class="row">
-        <div class="col-4">
-            <div class="card text-center w-100">
-                <div class="card-header">
-                  Featured
-                </div>
-                <div class="card-body">
-                  <h5 class="card-title">{{ event.name }}</h5>
-                  <p class="card-text">{{ event.description }}</p>
-                  <span class="badge rounded-pill text-bg-warning">4.6</span>
-                </div>
-                <div class="card-footer text-body-secondary">
-                  2 days ago
-                </div>
-              </div>
+  <div class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card text-center w-100">
+        <div class="card-header">
+          Featured
         </div>
-        <div class="col-8">
-            <div class="accordion accordion-flush" id="accordionFlushExample">
-                <div class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                      Accordion Item #1
-                    </button>
-                  </h2>
-                  <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                    <div class="accordion-body">
-                        {{ tickets_details }}
-                        {% for ticket in tickets_details %}
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                              <h5 class="card-title">Card title</h5>
-                              <h6 class="card-subtitle mb-2 text-body-secondary">{{ ticket.name }}</h6>
-                              <p class="card-text">{{ ticket.price }}</p>
-                              <a href="#" class="card-link">Card link</a>
-                              <a href="#" class="card-link">Another link</a>
-                            </div>
-                          </div>
-
-                        {% endfor %}
+        <div class="card-body">
+          <h5 class="card-title">{{ event.name }}</h5>
+          <p class="card-text">{{ event.description }}</p>
+          <span class="badge rounded-pill text-bg-warning">4.6</span>
+        </div>
+        <div class="card-footer text-body-secondary">
+          2 days ago
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="accordion accordion-flush" id="accordionFlushExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
+              aria-expanded="true" aria-controls="flush-collapseOne">
+              Tickets
+            </button>
+          </h2>
+          <div id="flush-collapseOne" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+              <div class="d-flex flex-wrap">
+                {% for ticket in tickets %}
+                <!-- <div class="card m-2 text-bg-info" style="width: 18rem;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ ticket.name }}</h5>
+                    <p class="card-text">{{ ticket.price }}</p>
+                    <a href="#" class="card-link">Buy Ticket</a>
+                  </div>
+                </div> -->
+                <div class="card m-2 border border-success" style="width: 18rem;">
+                  <img
+                    src="{% if ticket.image %} {{ ticket.image.url }} {% else %} https://images.unsplash.com/photo-1656908140565-f1947922002f?q=80&w=2128&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D {% endif %}"
+                    class="card-img" alt="...">
+                  <div class="card-img-overlay">
+                    <h5 class="card-title">{{ ticket.name }}</h5>
+                    <p class="card-text"><strong>{{ ticket.price }}</strong></p>
+                    <p class="card-text"><small>Last updated 3 mins ago</small></p>
+                    <div class="d-flex justify-content-between">
+                      <a href="{% url 'rsvp-checkout' event_id=event.id ticket_id=ticket.id %}" class="btn btn-success">Buy Now</a>
+                      <button class="btn btn-light add-to-cart"
+                      data-id="{{ ticket.id }}"
+                      data-name="{{ ticket.name }}"
+                      data-price="{{ ticket.price }}"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                          class="bi bi-cart-plus" viewBox="0 0 16 16">
+                          <path
+                            d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z" />
+                          <path
+                            d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
-                <div class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-                      Accordion Item #2
-                    </button>
-                  </h2>
-                  <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                    <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the second item's accordion body. Let's imagine this being filled with some actual content.</div>
-                  </div>
-                </div>
-                <div class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-                      Accordion Item #3
-                    </button>
-                  </h2>
-                  <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                    <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the third item's accordion body. Nothing more exciting happening here in terms of content, but just filling up the space to make it look, at least at first glance, a bit more representative of how this would look in a real-world application.</div>
-                  </div>
-                </div>
+                {% endfor %}
               </div>
+            </div>
+          </div>
         </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+              Accordion Item #2
+            </button>
+          </h2>
+          <div id="flush-collapseTwo" class="accordion-collapse collapse">
+            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the
+              <code>.accordion-flush</code> class. This is the second item's accordion body. Let's imagine this being
+              filled with some actual content.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+              Accordion Item #3
+            </button>
+          </h2>
+          <div id="flush-collapseThree" class="accordion-collapse collapse">
+            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the
+              <code>.accordion-flush</code> class. This is the third item's accordion body. Nothing more exciting
+              happening here in terms of content, but just filling up the space to make it look, at least at first
+              glance, a bit more representative of how this would look in a real-world application.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
 </section>
+
+{% endblock %}
+
+
+{% block script %}
+<script>
+
+$(document).ready(function() {
+    // Retrieve cart data from sessionStorage if it exists, otherwise initialize as empty array
+    let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+    // Update cart display on page load
+    updateCartDisplay(cart);
+
+    // Click event for add-to-cart button
+    $('.add-to-cart').on('click', function() {
+        // Get item details
+        const itemId = $(this).data('id');
+        const itemName = $(this).data('name');
+        const itemPrice = parseFloat($(this).data('price'));
+
+        // Check if item already exists in cart
+        let item = cart.find(i => i.id === itemId);
+
+        if (item) {
+            // If item exists, increase quantity
+            item.quantity += 1;
+        } else {
+            // If item does not exist, add new item to cart
+            cart.push({
+                id: itemId,
+                name: itemName,
+                price: itemPrice,
+                quantity: 1
+            });
+        }
+
+        // Save updated cart to sessionStorage
+        sessionStorage.setItem('cart', JSON.stringify(cart));
+
+        // Update cart display
+        updateCartDisplay(cart);
+        console.log('Cart:', cart); // Debug log
+    });
+
+    // Function to update cart display
+    function updateCartDisplay(cart) {
+        // Calculate total items in cart
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        $('#cart-count').text(totalItems);
+    }
+});
+
+  
+  
+</script>
 {% endblock %}
