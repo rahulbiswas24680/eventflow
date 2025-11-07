@@ -2,6 +2,8 @@ from forex_python.converter import CurrencyRates
 from rest_framework import serializers
 from typing import List
 from ..models import RSVP, Event, TicketType, EventImage
+from qr_codes.models import QRCode
+from payments.models import Transaction
 
 
 class EventImageSerializer(serializers.ModelSerializer):
@@ -85,6 +87,23 @@ class TicketTypeSerializer(serializers.ModelSerializer):
 
 
 class RSVPSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source='event.name', read_only=True)
+    attendee_name = serializers.CharField(source='attendee.first_name', read_only=True)
+    attendee_email = serializers.CharField(source='attendee.email', read_only=True)
+    ticket_qr = serializers.SerializerMethodField(read_only=True)
+    
     class Meta:
         model = RSVP
         fields = "__all__"
+        read_only_fields = ('event_name', 'attendee_name', 'attendee_email', 'ticket_qr')
+
+    def get_ticket_qr(self, obj):
+        try:
+            qr_obj = QRCode.objects.get(transaction__transaction_id=obj.transaction_id)
+            if qr_obj.code_image:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(qr_obj.code_image.url)
+                return qr_obj.code_image.url
+        except QRCode.DoesNotExist:
+            return None

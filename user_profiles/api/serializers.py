@@ -1,83 +1,70 @@
-from typing import Dict, List
-
-from django.contrib.auth.models import User
 from rest_framework import serializers
+from ..models import CustomUser, Organizer, UserRSVPHistory
 
-from events.api.serializers import EventSerializer
-from payments.api.serializers import TransactionSerializer
-
-from ..models import CustomUser, UserRSVPHistory, Organizer
-
-
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        exclude = [
-            "password",
-            "is_superuser",
-            "is_staff",
-            "user_permissions",
-            "groups",
+        model = CustomUser
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "profession",
+            "education",
+            "goal",
+            "languages",
+            "address",
+            "country",
         ]
+        read_only_fields = ["id", "email", "username"]
+
+class OrganizerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organizer
+        fields = [
+            "id",
+            "organizer_name",
+            "organizer_email",
+            "organizer_phone",
+            "organizer_address",
+            "organizer_slug",
+            "is_active",
+        ]
+        read_only_fields = ["id", "organizer_slug"]
+
+
+# ----------------------------------------------------------------------
+# Additional serializers required by the API views
+# ----------------------------------------------------------------------
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for detailed view of a CustomUser (profile) instance.
+    Includes all fields defined on the CustomUser model.
+    """
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+        read_only_fields = ["id", "email", "username"]
 
 
 class UserRSVPHistorySerializer(serializers.ModelSerializer):
+    """
+    Basic serializer for UserRSVPHistory entries.
+    """
     class Meta:
         model = UserRSVPHistory
-        # exclude = ["user_profile"]
         fields = "__all__"
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    user_rsvp_history = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
-
-    def get_user_rsvp_history(self, obj) -> List[Dict]:
-        qs = UserRSVPHistory.objects.filter(user_profile=obj)
-        res = UserRSVPHistorySerializer(qs, many=True)
-        return res.data
-
-
-class UserProfileInlineSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
+        read_only_fields = ["id", "created_at"]
 
 
 class UserRSVPHistoryDetailsSerializer(serializers.ModelSerializer):
+    """
+    Detailed serializer for UserRSVPHistory that can be extended with
+    nested representations (e.g., event details) if needed.
+    """
     class Meta:
         model = UserRSVPHistory
-        # exclude = ['user_profile', 'rsvp']
         fields = "__all__"
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["user_profile_details"] = UserProfileInlineSerializer(
-            instance.user_profile
-        ).data
-        data["event_details"] = EventSerializer(instance.rsvp.event).data
-
-        from payments.models import Transaction
-
-        event_transaction_details_qs = Transaction.objects.filter(
-            rsvp=instance.rsvp, user=instance.rsvp.attendee
-        )
-
-        data["event_transaction_details"] = TransactionSerializer(
-            event_transaction_details_qs, many=True
-        ).data
-        return data
-
-
-class OrganizerSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Organizer
-        fields = "__all__"
+        read_only_fields = ["id", "created_at"]

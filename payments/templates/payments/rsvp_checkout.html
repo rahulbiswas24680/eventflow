@@ -1,42 +1,78 @@
-{% extends "events/base.html" %}}
+{% extends "events/base.html" %}
 
 
 {% block content %}
 
-<div class="container border shadow-sm rounded bg-light my-5">
-    <h3 class="text-center my-3">Checkout Page</h3>
-    <section class="p-5 m-3">
-        <form class="row g-3">
+<div class="container-md py-3">
+  <h3 class="text-center my-3">RSVP Checkout</h3>
+
+  <div class="row">
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm m-3">
+        <div class="card-header bg-primary text-white">
+          Puchasing Tickets
+        </div>
+        <div class="card-body">
+          <div id="cart-boxes" class="mb-4"></div>
+          <div class="border-top pt-3 mt-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal</span>
+              <span id="cart-subtotal" class="fw-bold">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span>Tax (18%)</span>
+              <span id="cart-tax">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between mb-4 fw-bold fs-5">
+              <span>Total</span>
+              <span id="cart-total">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <section class="shadow-sm card m-3">
+        <div class="card-header bg-primary text-white">
+          Personal Details
+        </div>
+        <div class="card-body">
+          <form class="row g-3">
             <div class="col-md-6">
               <label for="inputEmail4" class="form-label">Email</label>
-              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@gmail.com">
+              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@gmail.com" required>
             </div>
             <div class="col-md-6">
               <label for="inputPhone" class="form-label">Phone</label>
-              <input type="tel" class="form-control" id="inputPhone" pattern="[0-9]{10}" placeholder="7890212212..." maxlength="10">
+              <input type="tel" class="form-control" id="inputPhone" pattern="[0-9]{10}" placeholder="7890212212..."
+                maxlength="10" required>
             </div>
             <div class="col-12">
               <label for="inputAddress" class="form-label">Address</label>
-              <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+              <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" required>
             </div>
             <div class="col-12">
               <label for="inputAddress2" class="form-label">Address 2</label>
               <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
             </div>
-            <div class="col-md-6">
-              <label for="inputCity" class="form-label">City</label>
-              <input type="text" class="form-control" id="inputCity">
-            </div>
             <div class="col-md-4">
               <label for="inputState" class="form-label">State</label>
-              <select id="inputState" class="form-select">
+              <select id="inputState" class="form-select" required>
+                <option selected>Choose...</option>
+                <option>...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="inputCity" class="form-label">City</label>
+              <select id="inputCity" class="form-select" required>
                 <option selected>Choose...</option>
                 <option>...</option>
               </select>
             </div>
             <div class="col-md-2">
               <label for="inputZip" class="form-label">Zip</label>
-              <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6">
+              <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6" required>
+              <span id="pincode-result"></span>
             </div>
             <div class="col-12">
               <div class="form-check">
@@ -46,12 +82,315 @@
                 </label>
               </div>
             </div>
-            <div class="col-12 d-flex justify-content-end">
-                <small class="text-secondary p-2 m-2"><i class="bi bi-info-circle mx-2"></i>Powered By <strong> STRIPE</strong> </small>
-              <button type="submit" class="btn btn-success btn-lg">Pay Now <i class="bi bi-arrow-right-circle"></i></button>
+            <div
+              class="col-12 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3 py-3 border-top">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-shield-check text-success me-2"></i>
+                <small class="text-muted">Secured & Powered by <strong class="text-dark">Stripe</strong></small>
+              </div>
+              {% csrf_token %}
+              <meta name="csrf-token" content="{{ csrf_token }}">
+              <button id="checkoutBtn" type="submit" class="btn btn-primary px-5 d-flex align-items-center">
+                <span class="mx-auto">Pay Now<i class="bi bi-arrow-right-circle ms-2"></i></span>
+              </button>
             </div>
           </form>
-    </section>
+        </div>
+      </section>
+    </div>
+  </div>
+
 </div>
+
+
+<script>
+  // load states 
+  $(document).ready(function () {
+
+    let cartData = null;
+
+    updateCartDisplay();
+    // Function to update cart display
+    function updateCartDisplay() {
+      $.ajax({
+        url: "{% url 'event-checkout' %}",   // <-- Django DRF endpoint
+        method: "GET",
+        success: function (data) {
+          // data = { event, tickets, total_cost }
+          console.log('data--', data);
+          // Update cart count
+          const totalItems = data.tickets.reduce((sum, item) => sum + item.quantity, 0);
+          $('#cart-count').text(totalItems);
+
+          // Calculate subtotal, tax (18%), and total
+          const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const tax = parseFloat((subtotal * 0.18).toFixed(2));
+          const total = parseFloat((subtotal + tax).toFixed(2));
+
+          // Update cart summary UI
+          $('#cart-subtotal').text(`$${subtotal.toFixed(2)}`);
+          $('#cart-tax').text(`$${tax.toFixed(2)}`);
+          $('#cart-total').text(`$${total.toFixed(2)}`);
+
+          // Render cart items
+          const $cartItems = $('#cart-boxes');
+          $cartItems.empty();
+          if (data.tickets.length === 0) {
+            $('#cart-empty').removeClass('d-none');
+          } else {
+            $('#cart-empty').addClass('d-none');
+            cartData = data.tickets;
+            data.tickets.forEach(item => {
+              const price = Number(item.price);
+              const itemHtml = `
+            <div class="cart-item bg-white p-3 mb-3 rounded-3 shadow-sm border" data-ticket-id="${item.id}">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1 fw-semibold">${item.name}</h6>
+                  <p class="text-muted small mb-1">$${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
+                  <small class="text-muted">Event: ${data.event.name}</small>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold text-primary mb-2">$${(price * item.quantity).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>`;
+              $cartItems.append(itemHtml);
+            });
+          }
+          console.log("Cart items after append:", $cartItems.children().length, $cartItems.html());
+
+
+          // Show event details
+          // $('#event-name').text(data.event.name);
+          // $('#event-date').text(new Date(data.event.date).toLocaleDateString());
+          // $('#event-location').text(data.event.location);
+
+          // Enable/disable checkout button
+          if (total > 0) {
+            $('#checkout-btn').removeClass('disabled');
+            $('#checkout-btn').attr('href', `/checkout/${data.event.id}/`);
+          } else {
+            $('#checkout-btn').addClass('disabled').attr('href', '#');
+          }
+        },
+        error: function () {
+          console.log('getting error');
+          // fallback if cart empty or API error
+          $('#cart-count').text(0);
+          $('#cart-subtotal').text('$0.00');
+          $('#cart-tax').text('$0.00');
+          $('#cart-total').text('$0.00');
+          $('#checkout-btn').addClass('disabled').attr('href', '#');
+          $('#cart-boxes').empty();
+          $('#cart-empty').removeClass('d-none');
+        }
+      });
+    }
+
+
+    // Function to load states for a given country
+    function loadStates(countryName) {
+      $.ajax({
+        url: 'https://countriesnow.space/api/v0.1/countries/states',
+        type: 'POST',
+        contentType: 'application/json', // Important: tell server we're sending JSON
+        data: JSON.stringify({
+          country: countryName // e.g., "Nigeria"
+        }),
+        dataType: 'json',
+        success: function (response) {
+          if (!response.error) {
+            const $select = $('#inputState').empty().prop('disabled', false);
+            $select.append('<option value="">-- Select State --</option>'); // Default option
+
+            // Loop through states and add as options
+            response.data.states.forEach(function (state) {
+              $select.append(
+                $('<option></option>').val(state.name).text(state.name)
+              );
+            });
+
+            console.log('States loaded successfully for', countryName);
+          } else {
+            console.error('Error:', response.msg);
+            alert('Failed to load states: ' + response.msg);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error('AJAX Error:', status, error);
+          alert('An error occurred while fetching states.');
+        }
+      });
+    }
+
+    // Function to load cities for a given country and state
+    function loadCities(countryName, stateName) {
+      $.ajax({
+        url: 'https://countriesnow.space/api/v0.1/countries/state/cities',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          country: countryName,
+          state: stateName
+        }),
+        dataType: 'json',
+        success: function (response) {
+          if (!response.error) {
+            const $select = $('#inputCity').empty().prop('disabled', false);
+            $select.append('<option value="">-- Select City --</option>');
+
+            response.data.forEach(function (cityName) {
+              $select.append(
+                $('<option></option>').val(cityName).text(cityName)
+              );
+            });
+
+            console.log('Cities loaded for', stateName);
+          } else {
+            alert('Failed to load cities: ' + response.msg);
+            $('#inputCity').prop('disabled', true);
+          }
+        },
+        error: function () {
+          alert('An error occurred while fetching cities.');
+          $('#inputCity').prop('disabled', true);
+        }
+      });
+    }
+
+
+    // Event: State changes
+    $('#inputState').on('change', function () {
+      const state = $(this).val();
+      const country = 'India';
+
+      if (state && country) {
+        $('#inputCity').prop('disabled', true).empty().append('<option value="">Loading...</option>');
+        loadCities(country, state);
+      } else {
+        $('#inputCity').prop('disabled', true).empty().append('<option value="">-- Select City --</option>');
+      }
+    });
+
+    $('#inputZip').on('blur', function () {
+      const pin = $('#inputZip').val().trim();
+      const $result = $('#pincode-result');
+
+      if (!/^[1-9][0-9]{5}$/.test(pin)) {
+        $result.text('❌ Invalid PIN format. Must be 6 digits, no leading zero.').css('color', 'red');
+        return;
+      }
+
+      // Optional: Call India Post API
+      $.get(`https://api.postalpincode.in/pincode/${pin}`, function (data) {
+        if (data[0].Status === "Success" && data[0].PostOffice.length > 0) {
+          $result.html(`✅ Valid! District: <strong>${data[0].PostOffice[0].District}</strong>, State: <strong>${data[0].PostOffice[0].State}</strong>`).css('color', 'green');
+        } else {
+          $result.text('❌ PIN code not found in database.').css('color', 'red');
+        }
+      }).fail(function () {
+        $result.text('⚠️ Could not verify PIN. Format is correct though.').css('color', 'orange');
+      });
+    });
+
+    // Example: Load states for Nigeria when page is ready
+    loadStates('India');
+
+    $("#checkoutBtn").on("click", function (e) {
+      e.preventDefault();
+
+      // Simple client‑side validation
+      const email = $('#inputEmail4').val().trim();
+      const phone = $('#inputPhone').val().trim();
+      const address = $('#inputAddress').val().trim();
+      const state = $('#inputState').val();
+      const city = $('#inputCity').val();
+      const zip = $('#inputZip').val().trim();
+
+      if (!email || !phone || !address || !state || !city || !zip) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      // Basic email format check
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      // Phone pattern already enforced by input, but double‑check length
+      if (phone.length !== 10) {
+        alert('Phone number must be 10 digits.');
+        return;
+      }
+
+      // Zip pattern already enforced, but ensure 6 digits
+      if (!/^[1-9][0-9]{5}$/.test(zip)) {
+        alert('Please enter a valid 6‑digit PIN code.');
+        return;
+      }
+
+      $.ajax({
+        url: "/api/payments/ticket-checkout-session/",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+          tickets: cartData.map(item => ({
+            ticket_id: item.id,
+            quantity: item.quantity
+          })),
+          // Optionally send customer details
+          email: email,
+          phone: phone,
+          address: address,
+          state: state,
+          city: city,
+          zip: zip
+        }),
+        success: function (data) {
+          // ✅ Redirect to Stripe Checkout
+          if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+          } else {
+            console.error("No checkout URL returned", data);
+          }
+        },
+        error: function (xhr, status, err) {
+          console.error("Checkout error:", err);
+          alert('An error occurred while processing your checkout. Please try again.');
+        },
+      });
+    });
+
+
+    // Get CSRF token from <meta> tag
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Add CSRF token to every jQuery AJAX request
+    $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      }
+    });
+  });
+</script>
 
 {% endblock %}

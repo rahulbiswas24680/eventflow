@@ -43,7 +43,7 @@ api_urls = [
         ),
         name="redoc",
     ),
-    path("user-info/", include("user_profiles.api.urls")),
+    path("user-profiles/", include("user_profiles.api.urls")),
     path("auth/", include("registration.api.urls")),
     path("events/", include("events.api.urls")),
     path("payments/", include("payments.api.urls")),
@@ -59,6 +59,7 @@ urlpatterns = [
 
     path("", include("events.urls")),
     path("checkout/", include("payments.urls")),
+    path("auth/", include("user_profiles.urls")),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

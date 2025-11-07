@@ -136,6 +136,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -179,6 +182,12 @@ SPECTACULAR_SETTINGS = {
         "deepLinking": True,
     },
     "SERVE_PUBLIC": False,
+    'EXCLUDE_FROM_SCHEMA': [
+        'django.contrib.auth.models.User',
+    ],
+    # 'POSTPROCESSING_HOOKS': [
+    #     'drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields',
+    # ],
 }
     
 
@@ -188,14 +197,15 @@ ROOT_URLCONF = "rsvp.urls"
 # stripe config
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY")
+STRIPE_WEBHOOK_SECRET_KEY = config("STRIPE_WEBHOOK_SECRET_KEY")
 SITE_URL = config("SITE_URL")
 
 
 # supabase config
-# DEFAULT_FILE_STORAGE = "rsvp.storage.SupabaseStorage"
-SUPABASE_URL = config("SUPABASE_URL")
-SUPABASE_API_KEY = config("SUPABASE_API_KEY")
-SUPABASE_BUCKET = config("SUPABASE_BUCKET")
+# DEFAULT_FILE_STORAGE = "rsvp.storage.SupabaseStorage"  # Using Django's default file storage instead
+# SUPABASE_URL = config("SUPABASE_URL")
+# SUPABASE_API_KEY = config("SUPABASE_API_KEY")
+# SUPABASE_BUCKET = config("SUPABASE_BUCKET")
 
 
 # SMTP Mail service config
@@ -221,5 +231,20 @@ CELERY_RESULT_BACKEND = "django-db"
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = (config("CORS_ORIGIN_WHITELIST")).split(' ')
+CSRF_TRUSTED_ORIGINS = [
+    "https://576f413302b4.ngrok-free.app",
+]
 
 CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
+
+DATE_FORMAT = 'F j, Y'
+DATETIME_FORMAT = 'F j, Y, g:i a'
+SHORT_DATETIME_FORMAT = 'm/d/Y g:i A'
+
+# Important: Disable localization if you want to enforce your format
+USE_L10N = False
+
+
+LOGIN_URL = '/auth/login/'       # your login URL
+LOGIN_REDIRECT_URL = '/'         # where to go after login (optional)
+LOGOUT_REDIRECT_URL = '/auth/login/'  # where to go after logout

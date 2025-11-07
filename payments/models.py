@@ -28,6 +28,7 @@ class Transaction(models.Model):
         choices=PAYMENT_METHOD_CHOICES, max_length=30, blank=True, null=True
     )
     transaction_id = models.CharField(max_length=30, null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)
     payment_status = models.CharField(
         choices=PAYMENT_STATUS_CHOICES,
         max_length=30,

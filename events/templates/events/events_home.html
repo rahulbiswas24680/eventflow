@@ -1,62 +1,252 @@
 {% extends 'events/base.html' %}
+{% load static %}
 
 {% block content %}
-
-<section class="container-md py-3">
+<style>
+    .carousel-image {
+        height: 400px;
+        object-fit: cover;
+    }
     
-    <h4>Events Popular in India</h4>
-    <div class="mb-4 mt-2">
-        <input class="form-control" type="text" placeholder="Search Here" aria-label="readonly input example">
+    .event-card-image {
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+<section class="container py-3">
+    <!-- Search and Create Event Section -->
+<div class="d-flex mt-2">
+  <div class="search-container w-100 position-relative">
+    <h2 class="text-primary mb-4 fw-bold"><i class="bi bi-calendar2-event-fill"></i> Find Events</h2>
+
+    <div class="row align-items-center position-relative">
+        <div class="{% if can_create_event %}col-12 col-sm-10{% else %}col-12{% endif %} mb-1">
+            <input type="text" id="event-search" 
+                   class="form-control"
+                   placeholder="Search events by name, category, or location...">
+            <span class="position-absolute end-0 me-3 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
+            
+            <!-- Loader -->
+            <div id="search-loader" class="mt-1 ms-2 d-none">
+              <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+            </div>
+        
+            <!-- Dropdown Results -->
+            <div id="event-dropdown" class="dropdown-menu w-100 shadow-sm mt-1" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        <div class="col-12 col-sm-2 mx-auto">
+            {% if can_create_event %}
+            <a href="{% url 'create-event' %}" class="btn btn-dark shadow-sm d-flex align-items-center text-nowrap">
+              <i class="bi bi-plus-circle fs-6 me-2"></i> Create Event
+            </a>
+            {% endif %}
+        </div>
     </div>
 
+  </div>
+</div>
+
+
+
+
+    <!-- Upcoming Events Carousel -->
     <h4>Your upcoming events</h4>
+    {% if events %}
+    <div id="upcomingEventsCarousel" class="carousel slide my-4" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            {% for event in events %}
+            <button type="button" data-bs-target="#upcomingEventsCarousel" 
+                    data-bs-slide-to="{{ forloop.counter0 }}" 
+                    {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+                    aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+        
+        <div class="carousel-inner rounded shadow-sm">
+            {% for event in events %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                {% if event.images.all %}
+                    <img src="{{ event.images.first.image.url }}" class="d-block w-100 carousel-image" alt="{{ event.name }}">
+                {% else %}
+                    <img src="https://images.pexels.com/photos/15448073/pexels-photo-15448073.jpeg" class="d-block w-100 carousel-image" alt="{{ event.name }}">
+                {% endif %}
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-3">
+                    <h5>{{ event.name }}</h5>
+                    <p>{{ event.date|date:"F j, Y" }} • {{ event.location }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
-    <div class="col-12 bg-body mb-4 mt-2" style="height: 7rem;">
-        <button class="btn btn-light w-100 h-100 shadow-sm"><h1 class="display-6" style="color: #1a49a1;"><i class="bi bi-plus-circle fs-3 mx-2"></i>Create Event</h1></button>
+        <!-- Carousel controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#upcomingEventsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#upcomingEventsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
+    {% else %}
+    <p class="text-center mb-4 mt-2">No upcoming events found.</p>
+    {% endif %}
 
+    <!-- Recent Events Grid -->
     <h4>Your most recent events</h4>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4 mt-2">
+    {% if events %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4 mt-2">
         {% for event in events %}
-        <div class="col-md-4">
-            <div class="card border">
-                <img src="https://images.pexels.com/photos/2747449/pexels-photo-2747449.jpeg?cs=srgb&dl=pexels-wolfgang-1002140-2747449.jpg&fm=jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">{{ event.name }}</h5>
-                    <p class="card-text">{{ event.description }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="card-text mb-0"><i class="fas fa-calendar-alt"></i> {{ event.date }}</p>
-                        <p class="card-text text-bg-warning p-2 fw-semibold rounded mb-0"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <!-- Event Images Carousel -->
+                {% if event.images.all %}
+                <div id="eventImagesControls{{ event.id }}" class="carousel slide">
+                    <div class="carousel-inner">
+                        {% for img in event.images.all %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ img.image.url }}" class="card-img-top d-block w-100 event-card-image" alt="{{ event.name }}">
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="card-text mb-0"><i class="fas fa-dollar-sign"></i> {{ event.price }}</p>
-                        <p class="card-text mb-0"><i class="fas fa-tag"></i> {{ event.category }}</p>
-                    </div>
-                    <p class="card-text mb-0"><i class="fas fa-user"></i> {{ event.organizer }}</p>
-                    <a href="{% url 'event-detail' event.id %}" class="btn btn-primary mt-3">Let's Join</a>
+                    {% if event.images.all.count > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#eventImagesControls{{ event.id }}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#eventImagesControls{{ event.id }}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    {% endif %}
                 </div>
-              </div>
+                {% else %}
+                <img src="https://images.pexels.com/photos/15448073/pexels-photo-15448073.jpeg" class="card-img-top event-card-image" alt="{{ event.name }}">
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ event.name }}</h5>
+                    <p class="card-text flex-grow-1">{{ event.description|truncatewords:15 }}</p>
+                    
+                    <div class="mb-2">
+                        <p class="card-text mb-1">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            {{ event.date|date:"M j, Y, g:i a" }}
+                        </p>
+                        <p class="card-text mb-1">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ event.location }}
+                        </p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-dollar-sign me-1"></i>{{ event.price }}
+                        </span>
+                        <span class="badge bg-info text-dark">
+                            <i class="fas fa-tag me-1"></i>{{ event.category }}
+                        </span>
+                    </div>
+                    
+                    <a href="{% url 'event-detail' event.id %}" class="btn btn-dark mt-3 fw-semibold">JOIN EVENT</a>
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>
-    <a href="" class="text-primary">View all recent events</a>
+    {% else %}
+    <p class="text-center mb-4 mt-2">No recent events found.</p>
+    {% endif %}
+    
+    <div class="text-center mt-3">
+        <a href="#" class="btn btn-outline-primary">View all recent events</a>
+    </div>
 </section>
 
 {% endblock %}
 
 {% block script %}
-
-
 <script>
-    document.getElementById('sidebar').addEventListener('mouseenter', function () {
-        document.getElementById('sidebar').classList.remove('shrinked');
+    $(document).ready(function () {
+    const $searchInput = $('#event-search');
+    const $loader = $('#search-loader');
+    const $dropdown = $('#event-dropdown');
+
+    let debounceTimer;
+
+    $searchInput.on('input', function () {
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+            const searchTerm = $searchInput.val().trim();
+
+            if (!searchTerm) {
+                $dropdown.removeClass('show').empty();
+                return;
+            }
+
+            $loader.removeClass('d-none');
+
+            $.ajax({
+                url: `{% url 'event-list' %}?search=${encodeURIComponent(searchTerm)}`,
+                type: "GET",
+                success: function (data) {
+                    $loader.addClass('d-none');
+                    $dropdown.empty();
+
+                    if (!data || data.length === 0) {
+                        $dropdown
+                            .addClass('show')
+                            .append(`<div class="dropdown-item text-muted">⚠️ No events found</div>`);
+                        return;
+                    }
+                    data.forEach(event => {
+                        console.log('image-', event.images[0].image)
+                        const item = `
+                            <a href="/event/${event.id}" class="dropdown-item">
+                                <div class="d-flex align-items-center">
+                                    <img src="${event.images[0].image || 'https://via.placeholder.com/50'}"
+                                         class="rounded me-2" width="50" height="50" alt="${event.name}">
+                                    <div>
+                                        <div class="fw-bold">${event.name}</div>
+                                        <small class="text-muted">${event.location || 'Unknown location'}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        $dropdown.append(item);
+                    });
+
+                    $dropdown.addClass('show');
+                },
+                error: function () {
+                    $loader.addClass('d-none');
+                    $dropdown
+                        .addClass('show')
+                        .html('<div class="dropdown-item text-danger">❌ Something went wrong</div>');
+                }
+            });
+        }, 400);
     });
 
-    document.getElementById('sidebar').addEventListener('mouseleave', function () {
-        document.getElementById('sidebar').classList.add('shrinked');
+    // Close dropdown when clicking outside
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.search-container').length) {
+            $dropdown.removeClass('show').empty();
+        }
     });
+});
 
 </script>
-
 {% endblock %}

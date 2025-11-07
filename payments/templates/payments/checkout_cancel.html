@@ -1,0 +1,16 @@
+{% extends "events/base.html" %}
+{% block content %}
+<div class="container text-center py-5">
+  <div class="card shadow-lg p-5 mx-auto">
+    <h1 class="text-danger mb-4">
+      <i class="bi bi-x-circle-fill"></i> Payment Canceled
+    </h1>
+    <p class="lead">Looks like you canceled the payment process.</p>
+    <p class="mt-3">Don’t worry, you can try again anytime!</p>
+
+    <a href="{% url 'events-home' %}" class="btn btn-outline-primary mt-4">
+      <i class="bi bi-arrow-left"></i> Back to Events
+    </a>
+  </div>
+</div>
+{% endblock %}

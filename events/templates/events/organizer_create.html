@@ -1,0 +1,141 @@
+{% extends "events/base.html" %}
+
+{% block content %}
+<section class="container-md py-4">
+    <h4 class="mb-4 text-primary text-center fw-bold">{% if object %}Edit Organizer{% else %}Create Organizer{% endif %}</h4>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h4>Whose events are you running?</h4>
+                        <p class="lead">
+                            Please tell us the name of the company, association or institution that
+                            you want to sell tickets for.
+                        </p>
+                        <div class="mb-4">
+                            <h5 class="mb-3 fw-bold text-primary border-bottom pb-2">Basic Information</h5>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium"
+                                    for="{{ form.organizer_name.id_for_label }}">Organizer name <span
+                                        class="text-danger">*</span></label>
+                                {{ form.organizer_name }}
+                                {% if form.organizer_name.errors %}
+                                {% for error in form.organizer_name.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                                <div class="form-text text-muted">Company name, association, institution, ...</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-medium" for="{{ form.organizer_email.id_for_label }}">Organizer Email</label>
+                                {{ form.organizer_email }}
+                                {% if form.organizer_email.errors %}
+                                {% for error in form.organizer_email.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-medium" for="{{ form.organizer_phone.id_for_label }}">Organizer Phone</label>
+                                {{ form.organizer_phone }}
+                                {% if form.organizer_phone.errors %}
+                                {% for error in form.organizer_phone.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-medium" for="{{ form.organizer_address.id_for_label }}">Organizer Address</label>
+                                {{ form.organizer_address }}
+                                {% if form.organizer_address.errors %}
+                                {% for error in form.organizer_address.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-medium" for="{{ form.organizer_slug.id_for_label }}">Address
+                                    short form</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border">
+                                        {{ request.scheme }}://{{ request.get_host }}/</span>
+                                    {{ form.organizer_slug }}
+                                </div>
+                                {% if form.organizer_slug.errors %}
+                                {% for error in form.organizer_slug.errors %}
+                                <div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                                <div class="form-text text-muted">This will be the URL your events can be found at. We
+                                    will also use this as an abbreviation of your account in some other places.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-medium" for="{{ form.is_active.id_for_label }}">Is Active</label>
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                {% for error in form.is_active.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="mb-3 fw-bold text-primary border-bottom pb-2">Legal Agreements</h5>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.privacy }}
+                                    <label class="form-check-label fw-medium" for="{{ form.privacy.id_for_label }}">
+                                        I have read and agree with the <a target="_blank" href="/about/en/privacy"
+                                            class="text-decoration-none text-primary">privacy policy</a>.
+                                    </label>
+                                </div>
+                                {% if form.privacy.errors %}
+                                {% for error in form.privacy.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.terms }}
+                                    <label class="form-check-label fw-medium" for="{{ form.terms.id_for_label }}">
+                                        I have read and agree with the <a target="_blank" href="/about/en/terms"
+                                            class="text-decoration-none text-primary">terms of service</a>.
+                                    </label>
+                                </div>
+                                {% if form.terms.errors %}
+                                {% for error in form.terms.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="alert alert-warning mt-4">
+                            <strong>Note:</strong> We only offer our services to businesses and similar entities, not to
+                            consumers or end-users.
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg flex-fill shadow-sm">
+                        {% if object %}Update{% else %}Create{% endif %}</button>
+                    <a href="{% url 'organizers-list' %}"
+                        class="btn btn-outline-secondary btn-lg flex-fill shadow-sm">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "events/base.html" %}
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-person-gear me-2"></i>Update Profile</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                        <input type="text" class="form-control" id="phone" name="phone" 
+                                               value="{{ request.user.phone }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="profession" class="form-label">Profession</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+                                        <input type="text" class="form-control" id="profession" name="profession" 
+                                               value="{{ request.user.profession }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="education" class="form-label">Education</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-mortarboard"></i></span>
+                                        <input type="text" class="form-control" id="education" name="education" 
+                                               value="{{ request.user.education }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="goal" class="form-label">Goal</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-bullseye"></i></span>
+                                        <input type="text" class="form-control" id="goal" name="goal" 
+                                               value="{{ request.user.goal }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="languages" class="form-label">Languages</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-translate"></i></span>
+                                        <input type="text" class="form-control" id="languages" name="languages" 
+                                               value="{{ request.user.languages }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="country" class="form-label">Country</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                        <input type="text" class="form-control" id="country" name="country" 
+                                               value="{{ request.user.country }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="address" class="form-label">Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-house"></i></span>
+                                <textarea class="form-control" id="address" name="address" rows="3">{{ request.user.address }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'user-profile' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Profile
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+</style>
+
+{% endblock %}

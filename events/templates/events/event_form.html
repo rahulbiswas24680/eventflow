@@ -1,0 +1,336 @@
+{% extends 'events/base.html' %}
+
+{% block content %}
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .image-preview {
+        height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+        transition: transform 0.3s;
+    }
+
+    .image-preview:hover {
+        transform: scale(1.05);
+    }
+
+    .image-card {
+        transition: all 0.3s;
+    }
+
+    .image-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-upload {
+        background: linear-gradient(45deg, #6c757d, #495057);
+        border: none;
+        padding: 10px 20px;
+        font-weight: 600;
+    }
+
+    .btn-upload:hover {
+        background: linear-gradient(45deg, #5a6268, #3d4348);
+    }
+
+    .progress-bar {
+        background-color: #0d6efd;
+    }
+
+    .custom-file-upload {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .custom-file-upload:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .custom-file-upload i {
+        font-size: 3rem;
+        color: #6c757d;
+    }
+
+    .btn-delete {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        opacity: 0.8;
+    }
+
+    .btn-delete:hover {
+        opacity: 1;
+    }
+
+    .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .thumbnail {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+</style>
+<div class="container-md py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Create New Event</h2>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" enctype="multipart/form-data" id="myDropzone">
+                        {% csrf_token %}
+
+
+                        <div class="mb-4">
+                            <label for="name" class="form-label required-field">Organizer</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <select type="text" class="form-control" id="organizer" name="organizer" required
+                                    placeholder="Select Organizer">
+                                    <option value="">No Organizer Selected</option>
+                                    {% for organizer in organizers %}
+                                    <option value="{{ organizer.id }}">{{ organizer.organizer_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="mb-4">
+                            <label for="name" class="form-label required-field">Event Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                    placeholder="Enter event name">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-text-paragraph"></i></span>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                    placeholder="Describe your event"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="date" class="form-label required-field">Date & Time</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                    <input type="datetime-local" class="form-control" id="date" name="date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                    <input type="text" class="form-control" id="location" name="location"
+                                        placeholder="Event location">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_virtual" name="is_virtual">
+                                    <label class="form-check-label" for="is_virtual">
+                                        <i class="bi bi-camera-video me-1"></i> Virtual Event
+                                    </label>
+                                </div>
+                                <div class="form-text">Check if this is an online event</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_published"
+                                        name="is_published">
+                                    <label class="form-check-label" for="is_published">
+                                        <i class="bi bi-megaphone me-1"></i> Publish Event
+                                    </label>
+                                </div>
+                                <div class="form-text">Make event visible to others</div>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="mb-4">
+                            <label for="images" class="form-label">Event Images</label>
+                            <div class="dropzone custom-file-upload mb-3" id="dropZone">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <p class="mt-2 mb-1">Drag & drop images here or click to browse</p>
+                                <p class="text-muted small">Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
+                                <input type="file" id="images" name="images" multiple accept="image/*">
+                                <!-- <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                                    onclick="document.getElementById('images').click()">
+                                    Select Files
+                                </button> -->
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div class="preview-container" id="imagePreview"></div>
+                        </div>
+
+                        <!-- Ticket Creation Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="bi bi-ticket me-2"></i>Tickets</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-text mb-3">At least one ticket is required</div>
+                                <div id="tickets-container">
+                                    <!-- Ticket 1 (required) -->
+                                    <div class="ticket-form mb-4 p-3 border rounded" data-ticket-index="1">
+                                        <h6 class="mb-3">Ticket #1</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label required-field">Ticket Name</label>
+                                            <input type="text" class="form-control" name="ticket_name_1" required
+                                                placeholder="Enter ticket name (e.g., General Admission, VIP)">
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label required-field">Price</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">₹</span>
+                                                    <input type="number" class="form-control" name="ticket_price_1" 
+                                                        required min="0" step="0.01" placeholder="0.00">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label required-field">Quantity Available</label>
+                                                <input type="number" class="form-control" name="ticket_quantity_1" 
+                                                    required min="1" placeholder="Enter number of tickets available">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Discount Code (Optional)</label>
+                                            <input type="text" class="form-control" name="ticket_discount_code_1" 
+                                                placeholder="Enter discount code if applicable">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Ticket Image (Optional)</label>
+                                            <input type="file" class="form-control" name="ticket_image_1" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="button" class="btn btn-outline-success" id="add-ticket-btn">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Another Ticket
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="reset" class="btn btn-outline-secondary me-md-2" id="resetBtn">
+                                <i class="bi bi-x-circle me-1"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>Create Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+        
+    // Ticket functionality
+    let ticketIndex = 1;
+    const ticketsContainer = document.getElementById('tickets-container');
+    const addTicketBtn = document.getElementById('add-ticket-btn');
+    
+    addTicketBtn.addEventListener('click', function() {
+        ticketIndex++;
+        
+        const ticketForm = document.createElement('div');
+        ticketForm.className = 'ticket-form mb-4 p-3 border rounded position-relative';
+        ticketForm.setAttribute('data-ticket-index', ticketIndex);
+        ticketForm.innerHTML = `
+            <h6 class="mb-3">Ticket #${ticketIndex}</h6>
+            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 remove-ticket-btn">
+                <i class="bi bi-x"></i> Remove
+            </button>
+            <div class="mb-3">
+                <label class="form-label required-field">Ticket Name</label>
+                <input type="text" class="form-control" name="ticket_name_${ticketIndex}" required
+                    placeholder="Enter ticket name (e.g., General Admission, VIP)">
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" name="ticket_price_${ticketIndex}" 
+                            required min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">Quantity Available</label>
+                    <input type="number" class="form-control" name="ticket_quantity_${ticketIndex}" 
+                        required min="1" placeholder="Enter number of tickets available">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Discount Code (Optional)</label>
+                <input type="text" class="form-control" name="ticket_discount_code_${ticketIndex}" 
+                    placeholder="Enter discount code if applicable">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Ticket Image (Optional)</label>
+                <input type="file" class="form-control" name="ticket_image_${ticketIndex}" accept="image/*">
+            </div>
+        `;
+        
+        ticketsContainer.appendChild(ticketForm);
+        
+        // Add event listener to the remove button for this ticket
+        ticketForm.querySelector('.remove-ticket-btn').addEventListener('click', function() {
+            ticketForm.remove();
+        });
+    });
+    
+    // Add event listeners to existing remove buttons (if any)
+    document.querySelectorAll('.remove-ticket-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.ticket-form').remove();
+        });
+    });
+</script>
+{% endblock %}

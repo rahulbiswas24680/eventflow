@@ -1,11 +1,12 @@
 
+import os
+from decimal import Decimal
+
 import stripe
 from django.conf import settings
-from django.db import models
 from django.core.exceptions import ValidationError
 from django.db import models
-import os
-from django.conf import settings
+
 
 # from rsvp.storage import SupabaseStorage
 
@@ -13,7 +14,7 @@ from django.conf import settings
 
 
 class Event(models.Model):
-    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    organizer = models.ForeignKey('user_profiles.Organizer', on_delete=models.PROTECT, default=None)
     name = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateTimeField()
@@ -36,6 +37,10 @@ class Event(models.Model):
     def save(self, *args, **kwargs):
         # Custom save logic here
         super().save(*args, **kwargs)
+
+    @property
+    def first_image(self):
+        return self.images.first()
 
 
 class EventImage(models.Model):
@@ -109,6 +114,8 @@ class RSVP(models.Model):
     transaction_id = models.CharField(max_length=30, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     attendee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    ticket_qty = models.PositiveIntegerField(max_length=100, default=1)
+    total_charge = models.PositiveIntegerField(default=Decimal(0))
     is_active = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)

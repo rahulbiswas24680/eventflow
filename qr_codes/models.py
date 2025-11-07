@@ -5,13 +5,10 @@ import uuid
 from io import BytesIO
 
 import segno
-from django.core.files import File
+from django.core.files.base import ContentFile
 from django.db import models
 
 from payments.models import Transaction
-from rsvp.storage import SupabaseStorage
-
-s = SupabaseStorage()
 
 
 class QRCode(models.Model):
@@ -34,49 +31,57 @@ class QRCode(models.Model):
         verbose_name = "QRCode"
         verbose_name_plural = "QRCodes"
 
-    def __str__(self):
-        return str(self.id) + "-(" + self.transaction.rsvp.event.name + ")"
+    # def __str__(self):
+    #     return str(self.id) + "-(" + self.transaction.rsvp.event.name + ")"
 
     def save(self, *args, **kwargs):
         tkn = None
-        if not self.code_data:
-            if self.transaction:
-                transaction_obj = self.transaction
-                self.code_data = f"""//////
-{transaction_obj.ticket_type.name}-
-{transaction_obj.currency}-
-{transaction_obj.amount}-
-{transaction_obj.quantity}-
-{transaction_obj.payment_status}-
-{transaction_obj.rsvp.id}-
-{transaction_obj.transaction_id}
+        if not self.code_data and self.transaction:
+            transaction_obj = self.transaction
+            self.code_data = f"""//////
+{transaction_obj.ticket_type.name}
+{transaction_obj.currency} {transaction_obj.amount}
+Qty: {transaction_obj.quantity}
+Status: {transaction_obj.payment_status}
+RSVP: {transaction_obj.rsvp.id}
+TxnID: {transaction_obj.transaction_id}
 //////
 """
-                tkn = self.code_data
 
-        if not self.code_image:
-            self.code_image = self.generate_qrcode(tkn)
-
-        if self.code_image:
-            current_image_name = str(self.code_image)
-            self.code_image = self.generate_qrcode(tkn)
-            self.remove_old_qr(current_image_name)
+        if not self.code_image and self.code_data:
+            self.generate_qrcode(self.code_data)
 
         super().save(*args, **kwargs)
 
     def generate_qrcode(self, tkn):
+        """Generate a professional styled QR code image locally"""
         qr_data = str(tkn)
-        qr_image = segno.make(qr_data, micro=False)
+        qr_image = segno.make(
+            qr_data,
+            micro=False,
+            error='h',   # high error correction for logo/branding
+        )
 
+        # Make filename
+        fname = "".join(random.choice(string.ascii_lowercase) for _ in range(8))
+        file_name = f"{fname}.png"
+
+        # Use a BytesIO buffer
         img_buffer = BytesIO()
 
-        qr_image.save(img_buffer, scale=10, kind="png")
+        qr_image.save(
+            img_buffer,
+            kind="png",
+            scale=10,
+            border=2,
+            dark="#2D3748",   # dark blue/gray instead of pure black
+            light="#F7FAFC",  # subtle off-white background
+            data_dark="#6B46C1",  # optional: emphasize data modules
+        )
         img_buffer.seek(0)
 
-        fname = "".join(
-            random.choice(string.ascii_lowercase) for i in range(6)
-        )
-        return File(img_buffer, name=f"{fname}.png")
+        # Generate a proper random filename
+        fname = "".join(random.choice(string.ascii_lowercase) for _ in range(8)) + ".png"
 
-    def remove_old_qr(self, filename):
-        s.delete(filename)
+        # Attach to model field (Django will save it to MEDIA_ROOT/transaction_qr_code/)
+        self.code_image.save(fname, ContentFile(img_buffer.read()), save=False)

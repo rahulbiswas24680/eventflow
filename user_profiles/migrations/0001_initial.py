@@ -40,8 +40,8 @@ class Migration(migrations.Migration):
                 ('address', models.TextField(blank=True)),
                 ('country', models.CharField(blank=True, max_length=100)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('groups', models.ManyToManyField(blank=True, related_name='customuser_groups', to='auth.group')),
-                ('user_permissions', models.ManyToManyField(blank=True, related_name='customuser_user_permissions', to='auth.permission')),
+                # ('groups', models.ManyToManyField(blank=True, related_name='customuser_groups', to='auth.group')),
+                # ('user_permissions', models.ManyToManyField(blank=True, related_name='customuser_user_permissions', to='auth.permission')),
             ],
             options={
                 'verbose_name': 'CustomUser',

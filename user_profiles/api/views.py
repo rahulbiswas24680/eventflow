@@ -24,9 +24,8 @@ class UserRSVPHistoryListCreateView(generics.ListCreateAPIView):
     serializer_class = UserRSVPHistorySerializer
 
     def get_queryset(self):
-        return (
-            super().get_queryset().filter(user_profile__user=self.request.user)
-        )
+        # Return RSVP history entries belonging to the authenticated user
+        return super().get_queryset().filter(user=self.request.user)
 
 
 class UserRSVPHistoryDetailView(generics.RetrieveAPIView):
@@ -34,16 +33,32 @@ class UserRSVPHistoryDetailView(generics.RetrieveAPIView):
     serializer_class = UserRSVPHistoryDetailsSerializer
 
     def get_queryset(self):
-        return (
-            super().get_queryset().filter(user_profile__user=self.request.user)
-        )
+        # Ensure the user can only access their own RSVP history details
+        return super().get_queryset().filter(user=self.request.user)
 
 
 class OrganizersListCreateView(generics.ListCreateAPIView):
     queryset = Organizer.objects.all()
     serializer_class = OrganizerSerializer
 
+    def get_queryset(self):
+        qs = Organizer.objects.filter(user=self.request.user)
+        print(qs, self.request.user)
+        return qs
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         return super().perform_create(serializer)
-    
+
+
+class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, or deleting a single Organizer.
+    Only the owner (creator) can modify or delete.
+    """
+    queryset = Organizer.objects.all()
+    serializer_class = OrganizerSerializer
+
+    def get_queryset(self):
+        # Restrict to organizers owned by the requesting user
+        return super().get_queryset().filter(user=self.request.user)

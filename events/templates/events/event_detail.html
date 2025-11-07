@@ -1,106 +1,211 @@
 {% extends 'events/base.html' %}
-
+{% load static %}
 {% block content %}
 
-<section class="container-fluid py-3">
+<section class="container-md py-3">
   <div class="row">
-    <div class="col-md-4 mb-4">
-      <div class="card text-center w-100">
-        <div class="card-header">
-          Featured
+    <div class="col-md-3 mb-4">
+      <div class="card h-100 shadow-sm border-0 rounded overflow-hidden hover-lift transition">
+        <!-- Optional: Add a header with subtle background -->
+        <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+          <h6 class="text-primary mb-0 fw-bold text-uppercase small">
+            <i class="bi bi-star-fill me-1"></i> Featured
+          </h6>
         </div>
-        <div class="card-body">
-          <h5 class="card-title">{{ event.name }}</h5>
-          <p class="card-text">{{ event.description }}</p>
-          <span class="badge rounded-pill text-bg-warning">4.6</span>
+
+        <div class="card-body d-flex flex-column p-4" style="height: fixed;">
+          <h5 class="card-title fw-bold mb-3 text-truncate">{{ event.name }}</h5>
+          <p class="card-text text-muted flex-grow-1 mb-4 small">{{ event.description }}</p>
+
+          <div id="eventImagesControls" class="carousel slide my-3">
+            <div class="carousel-inner">
+              {% if images %}
+              {% for image in images %}
+              <div class="carousel-item active">
+                <img src="{{ image.image.url }}" class="d-block w-100" alt="...">
+              </div>
+              {% endfor %}
+              {% endif %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#eventImagesControls"
+              data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#eventImagesControls"
+              data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+
+          <!-- Rating badge with icon -->
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-semibold">
+              <i class="bi bi-star-fill me-1"></i> 4.6
+            </span>
+            <small class="text-muted">⭐ 86 reviews</small>
+          </div>
         </div>
-        <div class="card-footer text-body-secondary">
-          2 days ago
+
+        <div class="card-footer bg-white border-0 py-3">
+          <div class="d-flex align-items-center justify-content-between text-muted small">
+            <span><i class="bi bi-clock me-1"></i> 2 days ago</span>
+            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+              View Details
+            </a>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-8">
-      <div class="accordion accordion-flush" id="accordionFlushExample">
-        <div class="accordion-item">
+    <div class="col-md-6 mb-4">
+      <div class="accordion" id="accordionFlushExample">
+        <!-- Tickets Accordion -->
+        <div class="accordion-item border-0 shadow-sm rounded mb-3">
           <h2 class="accordion-header">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
-              aria-expanded="true" aria-controls="flush-collapseOne">
-              Tickets
+            <button class="accordion-button fw-bold bg-light text-primary rounded" type="button"
+              data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="true"
+              aria-controls="flush-collapseOne">
+              🎟️ Tickets
             </button>
           </h2>
           <div id="flush-collapseOne" class="accordion-collapse collapse show">
-            <div class="accordion-body">
-              <div class="d-flex flex-wrap">
+            <div class="accordion-body p-0">
+              <div class="d-flex flex-wrap gap-3 p-3">
                 {% for ticket in tickets %}
-                <!-- <div class="card m-2 text-bg-info" style="width: 18rem;">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ ticket.name }}</h5>
-                    <p class="card-text">{{ ticket.price }}</p>
-                    <a href="#" class="card-link">Buy Ticket</a>
-                  </div>
-                </div> -->
-                <div class="card m-2 border border-success" style="width: 18rem;">
-                  <img
-                    src="{% if ticket.image %} {{ ticket.image.url }} {% else %} https://images.unsplash.com/photo-1656908140565-f1947922002f?q=80&w=2128&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D {% endif %}"
-                    class="card-img" alt="...">
-                  <div class="card-img-overlay">
-                    <h5 class="card-title">{{ ticket.name }}</h5>
-                    <p class="card-text"><strong>{{ ticket.price }}</strong></p>
-                    <p class="card-text"><small>Last updated 3 mins ago</small></p>
-                    <div class="d-flex justify-content-between">
-                      <a href="{% url 'rsvp-checkout' event_id=event.id ticket_id=ticket.id %}" class="btn btn-success">Buy Now</a>
-                      <button class="btn btn-light add-to-cart"
-                      data-id="{{ ticket.id }}"
-                      data-name="{{ ticket.name }}"
-                      data-price="{{ ticket.price }}"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                          class="bi bi-cart-plus" viewBox="0 0 16 16">
-                          <path
-                            d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z" />
-                          <path
-                            d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
-                        </svg>
-                      </button>
+                <div class="ticket-card card border-0 shadow-sm rounded overflow-hidden hover-lift transition"
+                  style="width: 18rem; min-width: 280px;">
+                  <!-- Image -->
+                  <div class="position-relative">
+                    <img
+                      src="{% if ticket.image %} {{ ticket.image.url }} {% else %} https://images.unsplash.com/photo-1656908140565-f1947922002f?auto=format&fit=crop&w=600&h=300&q=80 {% endif %}"
+                      class="card-img-top" alt="{{ ticket.name }}" style="height: 160px; object-fit: cover;">
+                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
+                    <div class="position-absolute bottom-0 start-0 p-3 text-white">
+                      <h5 class="card-title mb-1 fw-bold">{{ ticket.name }}</h5>
+                      <p class="card-text mb-0"><strong class="fs-5">${{ ticket.price }}</strong></p>
                     </div>
                   </div>
+
+                  <!-- Card Body -->
+                  <div class="card-body border-top pt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">Updated 3 mins ago</small>
+                      <div class="btn-group text-nowrap" role="group">
+
+                        <button class="btn btn-outline-secondary btn-sm add-to-cart" data-id="{{ ticket.id }}"
+                          data-name="{{ ticket.name }}" data-price="{{ ticket.price }}" title="Add to cart">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-cart-plus" viewBox="0 0 16 16">
+                            <path
+                              d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z" />
+                            <path
+                              d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                          </svg>
+
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 w-100">
+                  <p class="text-muted">No tickets available for this event.</p>
                 </div>
                 {% endfor %}
               </div>
             </div>
           </div>
         </div>
-        <div class="accordion-item">
+
+        <!-- Other Accordions -->
+        <div class="accordion-item border-0 shadow-sm rounded mb-3">
           <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-              data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-              Accordion Item #2
+            <button class="accordion-button fw-bold bg-light text-info collapsed rounded" type="button"
+              data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false"
+              aria-controls="flush-collapseTwo">
+              📍 Location & Info
             </button>
           </h2>
           <div id="flush-collapseTwo" class="accordion-collapse collapse">
-            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the
-              <code>.accordion-flush</code> class. This is the second item's accordion body. Let's imagine this being
-              filled with some actual content.
+            <div class="accordion-body">
+              <p><strong>Venue:</strong> Grand Conference Hall</p>
+              <p><strong>Address:</strong> 123 Main Street, City, Country</p>
+              <p><strong>Time:</strong> 10:00 AM - 6:00 PM</p>
+              <a href="#" class="btn btn-outline-info btn-sm">Get Directions</a>
             </div>
           </div>
         </div>
-        <div class="accordion-item">
+
+        <div class="accordion-item border-0 shadow-sm rounded">
           <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-              data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-              Accordion Item #3
+            <button class="accordion-button fw-bold bg-light text-warning collapsed rounded" type="button"
+              data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false"
+              aria-controls="flush-collapseThree">
+              ❓ FAQ
             </button>
           </h2>
           <div id="flush-collapseThree" class="accordion-collapse collapse">
-            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the
-              <code>.accordion-flush</code> class. This is the third item's accordion body. Nothing more exciting
-              happening here in terms of content, but just filling up the space to make it look, at least at first
-              glance, a bit more representative of how this would look in a real-world application.
+            <div class="accordion-body">
+              <div class="mb-3">
+                <strong>Can I get a refund?</strong>
+                <p class="mb-0">Refunds are available up to 24 hours before the event.</p>
+              </div>
+              <div>
+                <strong>Is parking available?</strong>
+                <p class="mb-0">Yes, free parking is available onsite.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="col-md-3">
+      <div class="bg-light rounded p-4 h-auto shadow-sm" style="min-width: 18rem;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-cart me-2"></i> Your Cart
+          </h5>
+          <span class="badge bg-primary rounded-pill px-3 py-2" id="cart-count">0</span>
+        </div>
+
+        <!-- Cart Items List -->
+
+
+        <div id="cart-boxes" class="mb-4"></div>
+
+        <!-- Empty State -->
+        <div id="cart-empty" class="text-center py-5 d-none">
+          <i class="bi bi-cart-x fs-1 text-muted mb-3"></i>
+          <p class="text-muted">Your cart is empty</p>
+          <small class="text-muted">Add tickets to get started</small>
+        </div>
+      </div>
+
+      <!-- Cart Summary -->
+      <div class="border-top pt-3 mt-3">
+        <div class="d-flex justify-content-between mb-2">
+          <span>Subtotal</span>
+          <span id="cart-subtotal" class="fw-bold">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span>Tax (8%)</span>
+          <span id="cart-tax">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-4 fw-bold fs-5">
+          <span>Total</span>
+          <span id="cart-total">$0.00</span>
+        </div>
+        <button id="checkout-btn" class="btn btn-primary w-100 py-2 rounded-pill fw-bold disabled"
+          data-event-id="{{ event.id }}">
+          Checkout
+        </button>
+        <button id="clear-cart-btn" class="btn btn-outline-secondary w-100 py-2 mt-2 rounded-pill reset-cart">
+          Clear Cart
+        </button>
+      </div>
+    </div>
+  </div>
   </div>
 
 </section>
@@ -111,53 +216,206 @@
 {% block script %}
 <script>
 
-$(document).ready(function() {
+  $(document).ready(function () {
+
+    // Helper to fetch CSRF token from cookies (needed in Django)
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+
     // Retrieve cart data from sessionStorage if it exists, otherwise initialize as empty array
     let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
 
     // Update cart display on page load
-    updateCartDisplay(cart);
+    updateCartDisplay();
+    console.log("cart-items element exists?", $('#cart-boxes').length);
 
     // Click event for add-to-cart button
-    $('.add-to-cart').on('click', function() {
-        // Get item details
-        const itemId = $(this).data('id');
-        const itemName = $(this).data('name');
-        const itemPrice = parseFloat($(this).data('price'));
+    $('.add-to-cart').on('click', function () {
+      // Get item details
+      const itemId = $(this).data('id');
+      const itemName = $(this).data('name');
+      const itemPrice = parseFloat($(this).data('price'));
 
-        // Check if item already exists in cart
-        let item = cart.find(i => i.id === itemId);
+      // Check if item already exists in cart
+      let item = cart.find(i => i.id === itemId);
 
-        if (item) {
-            // If item exists, increase quantity
-            item.quantity += 1;
-        } else {
-            // If item does not exist, add new item to cart
-            cart.push({
-                id: itemId,
-                name: itemName,
-                price: itemPrice,
-                quantity: 1
-            });
-        }
+      if (item) {
+        // If item exists, increase quantity
+        item.quantity += 1;
+      } else {
+        // If item does not exist, add new item to cart
+        cart.push({
+          id: itemId,
+          name: itemName,
+          price: itemPrice,
+          quantity: 1
+        });
+      }
 
-        // Save updated cart to sessionStorage
-        sessionStorage.setItem('cart', JSON.stringify(cart));
-
-        // Update cart display
-        updateCartDisplay(cart);
-        console.log('Cart:', cart); // Debug log
+      // Save updated cart to sessionStorage
+      sessionStorage.setItem('cart', JSON.stringify(cart));
+      console.log(itemId, '??');
+      // sync cart with server
+      syncCartWithServer(itemId, cart);
+      console.log('Cart:', cart); // Debug log
     });
 
-    // Function to update cart display
-    function updateCartDisplay(cart) {
-        // Calculate total items in cart
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        $('#cart-count').text(totalItems);
-    }
-});
 
-  
-  
+    function syncCartWithServer(itemId) {
+      let formData = new FormData();
+      formData.append("ticket_id", itemId);
+      formData.append("quantity", 1);
+
+      $.ajax({
+        url: "{% url 'add-to-cart' %}",
+        type: "POST",
+        data: formData,
+        processData: false,  // required for FormData
+        contentType: false,  // required for FormData
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        success: function (response) {
+          updateCartDisplay(); // Fetch updated cart data from server
+        }
+      });
+    }
+
+    function resetCartOnServer() {
+      $.ajax({
+        url: "{% url 'reset-cart' %}",  // your Django URL name
+        type: "POST",
+        data: { reset: true }, // dummy field just to make POST not empty
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        success: function (response) {
+          console.log("Cart has been reset:", response);
+          updateCartDisplay(); // Call updateCartDisplay after cart is reset
+        },
+        error: function (xhr) {
+          console.error("Error resetting cart:", xhr.responseText);
+        }
+      });
+    }
+
+    // Function to update cart display
+    function updateCartDisplay() {
+      $.ajax({
+        url: "{% url 'event-checkout' %}",   // <-- Django DRF endpoint
+        method: "GET",
+        success: function (data) {
+          // data = { event, tickets, total_cost }
+          console.log('data--', data);
+          // Update cart count
+          const totalItems = data.tickets.reduce((sum, item) => sum + item.quantity, 0);
+          $('#cart-count').text(totalItems);
+
+          // Calculate subtotal, tax (8%), and total
+          const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const tax = parseFloat((subtotal * 0.08).toFixed(2));
+          const total = parseFloat((subtotal + tax).toFixed(2));
+
+          // Update cart summary UI
+          $('#cart-subtotal').text(`$${subtotal.toFixed(2)}`);
+          $('#cart-tax').text(`$${tax.toFixed(2)}`);
+          $('#cart-total').text(`$${total.toFixed(2)}`);
+
+          // Render cart items
+          const $cartItems = $('#cart-boxes');
+          $cartItems.empty();
+          if (data.tickets.length === 0) {
+            $('#cart-empty').removeClass('d-none');
+          } else {
+            $('#cart-empty').addClass('d-none');
+            data.tickets.forEach(item => {
+            const price = Number(item.price);
+            const itemHtml = `
+            <div class="cart-item bg-white p-3 mb-3 rounded-3 shadow-sm border" data-ticket-id="${item.id}">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1 fw-semibold">${item.name}</h6>
+                  <p class="text-muted small mb-1">$${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
+                  <small class="text-muted">Event: ${data.event.name}</small>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold text-primary mb-2">$${(price * item.quantity).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>`;
+            $cartItems.append(itemHtml);
+            });
+          }
+          console.log("Cart items after append:", $cartItems.children().length, $cartItems.html());
+          
+
+          // Show event details
+          // $('#event-name').text(data.event.name);
+          // $('#event-date').text(new Date(data.event.date).toLocaleDateString());
+          // $('#event-location').text(data.event.location);
+
+          // Enable/disable checkout button
+          if (total > 0) {
+            $('#checkout-btn').removeClass('disabled');
+            $('#checkout-btn').attr('href', `/checkout/${data.event.id}/`);
+          } else {
+            $('#checkout-btn').addClass('disabled').attr('href', '#');
+          }
+        },
+        error: function () {
+          console.log('getting error');
+          // fallback if cart empty or API error
+          $('#cart-count').text(0);
+          $('#cart-subtotal').text('$0.00');
+          $('#cart-tax').text('$0.00');
+          $('#cart-total').text('$0.00');
+          $('#checkout-btn').addClass('disabled').attr('href', '#');
+          $('#cart-boxes').empty();
+          $('#cart-empty').removeClass('d-none');
+        }
+      });
+    }
+
+    // Checkout button click – redirect to checkout page for the selected tickets
+    $('#checkout-btn').on('click', function (e) {
+      // Prevent default navigation if button is disabled
+      if ($(this).hasClass('disabled')) {
+        e.preventDefault();
+        return;
+      }
+      const eventId = $(this).data('event-id');
+      const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+      if (cart.length === 0) {
+        alert('Your cart is empty.');
+        return;
+      }
+      // Build URL: /payments/events/
+      const checkoutUrl = `/checkout/events/`;
+      window.location.href = checkoutUrl;
+    });
+
+    $('.reset-cart').on('click', function () {
+      cart = []; // Clear in-memory cart
+      sessionStorage.removeItem('cart'); // Clear from storage
+      resetCartOnServer();
+      updateCartDisplay(cart);
+      console.log('Cart has been reset.'); // Debug log
+    });
+  });
+
+
 </script>
 {% endblock %}

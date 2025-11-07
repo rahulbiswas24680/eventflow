@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework import status
+from rest_framework import status, filters
 from ..models import RSVP, Event, TicketType
 from .serializers import (
     EventSerializer,
@@ -13,6 +13,8 @@ from drf_spectacular.utils import extend_schema
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all().order_by("created_at")
     serializer_class = EventSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'location', 'date']
 
 
 class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -35,15 +37,15 @@ class TicketTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
     description="Return a list of all user details of each event.",
 )
 class RSVPListCreateView(generics.ListCreateAPIView):
-    queryset = RSVP.objects.all().order_by("created_at")
+    queryset = RSVP.objects.all()
     serializer_class = RSVPSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(attendee=self.request.user)
         event_id = self.request.query_params.get("event")
         if event_id:
             queryset = queryset.filter(event_id=event_id)
-        return queryset
+        return queryset.order_by("created_at")
 
 
 class RSVPDetailView(generics.RetrieveUpdateDestroyAPIView):

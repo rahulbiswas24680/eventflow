@@ -5,8 +5,18 @@ from events.models import RSVP
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
-    groups = models.ManyToManyField(Group, related_name='customuser_groups', blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name='customuser_user_permissions', blank=True)
+    groups = models.ManyToManyField(
+        Group,
+        related_name='customuser_groups',
+        blank=True,
+        help_text='The groups this user belongs to.'
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='customuser_permissions',
+        blank=True,
+        help_text='Specific permissions for this user.'
+    )
     phone = models.CharField(max_length=20, blank=True)
     profession = models.CharField(max_length=100, blank=True)
     education = models.CharField(max_length=100, blank=True)
@@ -47,7 +57,7 @@ class UserRSVPHistory(models.Model):
 
 
 class Organizer(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.PROTECT)
+    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name='organizers')
     organizer_name = models.CharField(max_length=200, blank=True, null=True)
     organizer_email = models.CharField(max_length=100, blank=True, null=True)
     organizer_phone = models.CharField(max_length=100, blank=True, null=True)

@@ -1,85 +1,179 @@
 
+{% load nav_extras %}
+
+
+<style>
+  
+/* ========================================================== */
+/* Sidebar base */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  background-color: rgb(66, 82, 57) !important;
+  /* same theme color */
+  overflow-y: auto;
+  transition: all 0.3s ease;
+  z-index: 1030;
+}
+
+/* Shrinked sidebar */
+#sidebar.shrinked {
+  width: 80px;
+  background-color: rgb(66, 82, 57) !important;
+  /* keep same bg color */
+}
+
+/* Hide text but keep icons centered */
+#sidebar.shrinked .sidebar-text {
+  display: none;
+}
+
+#sidebar.shrinked .nav-link {
+  justify-content: center;
+  padding: 12px;
+  /* equal spacing */
+}
+
+/* Keep icons sized properly */
+.sidebar .nav-link i {
+  font-size: 1.4rem;
+  min-width: 24px;
+  text-align: center;
+  color: #fff;
+  /* icons remain white */
+}
+
+/* Hover and active styles (consistent in both states) */
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+
+/* Optional: make sure the shrinked version doesn’t stretch icons weird */
+#sidebar.shrinked .nav-link i {
+  margin: 0;
+}
+
+/* When sidebar is shrinked */
+#sidebar.shrinked~.content {
+  margin-left: 80px;
+  width: calc(100% - 80px);
+}
+
+/* On smaller screens (mobile/tablet) */
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    width: 80px;
+    /* shrinked by default */
+    height: 100%;
+    z-index: 1030;
+  }
+
+  .content {
+    margin-left: 80px;
+    /* leave space for collapsed sidebar */
+    width: calc(100% - 80px);
+  }
+}
+
+/* Force collapsed sidebar on medium and smaller screens */
+@media (max-width: 992px) {
+  #sidebar {
+    width: 80px !important;
+  }
+
+  #sidebar .sidebar-text {
+    display: none !important;
+  }
+
+  .content {
+    margin-left: 80px !important;
+    width: calc(100% - 80px) !important;
+  }
+}
+
+
+/* ============================================================= */
+
+</style>
 
 <div id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <i class="bi bi-calendar3-event" style="font-size: xxx-large; color: #9be2b6;"></i>
-      <span class="fs-4 sidebar-text" style="color: #9be2b6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 700;">EventFlow</span>
-    </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="{% url 'events-home' %}" class="nav-link active" aria-current="page">
+  <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <i class="bi bi-calendar3-event" style="font-size: xxx-large; color: #9be2b6;"></i> 
+      <span class="fs-4 sidebar-text"
+      style="color: #9be2b6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 700;"> EventFlow</span>
+  </a>
+  <hr>
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="{% url 'events-home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}">
         <i class="bi bi-speedometer2"></i>
-          <span class="sidebar-text">Dashboard</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <i class="bi bi-calendar2-event"></i>
-          <span class="sidebar-text">Events</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'organizers-masters' %}" class="nav-link text-white">
-          <i class="bi bi-people-fill"></i>
-          <span class="sidebar-text">Organizers</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-        <i class="bi bi-ticket-perforated-fill"></i>
-          <span class="sidebar-text">Orders</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <i class="bi bi-cash-coin"></i>
-          <span class="sidebar-text">Payments</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <i class="bi bi-person-fill"></i>
-          <span class="sidebar-text">User Settings</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <i class="bi bi-table"></i>
-          <span class="sidebar-text">Reports</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <i class="bi bi-printer"></i>
-          <span class="sidebar-text">Shipping list</span>
-        </a>
-      </li>
-    </ul>
-    <hr>
-    <div class="dropdown">
-      <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
-        <strong class="sidebar-text">mdo</strong>
+        <span class="sidebar-text">Home</span>
       </a>
-      <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-        <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle me-2"></i>New project...</a></li>
-        <li><a class="dropdown-item" href="#"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
-        <li><a class="dropdown-item" href="#"><i class="bi bi-person-square me-2"></i>Profile</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="#">Sign out</a></li>
-      </ul>
-    </div>
+    </li>
+
+    <li>
+      <a href="#" class="nav-link text-white {% if request.path|startswith:'/explore' %}active{% endif %}">
+        <i class="bi bi-compass"></i>
+        <span class="sidebar-text">Explore</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="{% url 'my-rsvp-history' %}"
+        class="nav-link text-white {% if request.path|startswith:'/my-rsvp' %}active{% endif %}">
+        <i class="bi bi-ticket-perforated-fill"></i>
+        <span class="sidebar-text">My Events</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="{% url 'organizers-list' %}"
+        class="nav-link text-white {% if request.path|startswith:'/organizers' %}active{% endif %}">
+        <i class="bi bi-people-fill"></i>
+        <span class="sidebar-text">Organizers</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="{% url 'user-profile' %}"
+        class="nav-link text-white {% if request.path|startswith:'/profile' %}active{% endif %}">
+        <i class="bi bi-person-fill"></i>
+        <span class="sidebar-text">Profile</span>
+      </a>
+    </li>
+  </ul>
+  <hr>
+  <div class="dropdown">
+    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+      data-bs-toggle="dropdown" aria-expanded="false">
+      <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+      <strong class="sidebar-text">{{ request.user.username }}</strong>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+      {% if not request.user.is_authenticated %}
+        <li><a class="dropdown-item" href="{% url 'user-register' %}"><i class="bi bi-plus-circle me-2"></i>Register</a></li>
+        <li><a class="dropdown-item" href="{% url 'user-login' %}"><i class="bi bi-gear-fill me-2"></i>Login</a></li>
+      {% else %}
+        <li><a class="dropdown-item" href="{% url 'user-logout' %}">Logout</a></li>
+      {% endif %}
+    </ul>
   </div>
+</div>
 
 
-  <script>
-    $(document).ready(function() {
-      var currentUrl = window.location.href;
-      $('.nav-link').each(function() {
-        if ($(this).attr('href') === currentUrl) {
-          $(this).addClass('active');
-        }
-      });
+<script>
+  $(document).ready(function () {
+    var currentUrl = window.location.href;
+    $('.nav-link').each(function () {
+      if ($(this).attr('href') === currentUrl) {
+        $(this).addClass('active');
+      }
     });
-  </script>
+  });
+</script>
