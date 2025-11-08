@@ -4,7 +4,7 @@
 <section class="container-md py-4">
     <h4 class="mb-4 text-primary text-center fw-bold">{% if object %}Edit Organizer{% else %}Create Organizer{% endif %}</h4>
 
-    <form method="post">
+    <form method="post" action="{% url 'organizer-create' %}">
         {% csrf_token %}
         <div class="row justify-content-center">
             <div class="col-lg-8 col-xl-6">
