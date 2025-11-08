@@ -32,7 +32,7 @@ class Event(models.Model):
         verbose_name_plural = 'Events'
 
     def __str__(self):
-        return self.name + '-' + self.organizer.first_name
+        return self.name + '-' + self.organizer.organizer_name
 
     def save(self, *args, **kwargs):
         # Custom save logic here

@@ -21,7 +21,7 @@ class EventSerializer(serializers.ModelSerializer):
     
     def to_representation(self, obj):
         representation = super().to_representation(obj)
-        representation['organizer'] = obj.organizer.username
+        representation['organizer'] = obj.organizer.organizer_name
         return representation
 
 
