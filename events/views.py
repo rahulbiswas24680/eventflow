@@ -2,15 +2,20 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import redirect, render, get_object_or_404
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from user_profiles.models import Organizer
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import tempfile
+
 
 from .api.serializers import EventDetailSerializer, EventSerializer
-from .models import Event, TicketType, EventImage
+from .models import Event, TicketType, EventImage, RSVP
+from qr_codes.models import QRCode
 
 
 class OrganizerForm(forms.ModelForm):
@@ -97,16 +102,27 @@ class OrganizerListView(LoginRequiredMixin, ListView):
         print(qs, self.request.user)
         return qs
 
-# Removed duplicate function
 
 
 # @login_required
 def events_home(request):
-    events = Event.objects.all()
-    organizer = Organizer.objects.filter(user=request.user).first()
+    # Publicly visible events
+    events = Event.objects.filter(is_published=True, is_active=True).select_related('organizer')
+
     context = {"events": events}
-    if organizer:
-        context["can_create_event"] = True
+
+    if request.user.is_authenticated:
+        # Get organizer profile if user is an organizer
+        organizer = Organizer.objects.filter(user=request.user).first()
+        if organizer:
+            context["can_create_event"] = True
+            # Show user's own events (drafts/unpublished)
+            user_events = Event.objects.filter(organizer=organizer).select_related('organizer')
+            context["user_events"] = user_events
+    else:
+        # Guest users can only see published events
+        context["can_create_event"] = False
+
     return render(request, "events/events_home.html", context)
 
 
@@ -220,3 +236,40 @@ class OrganizerCreateView(LoginRequiredMixin, CreateView):
     def form_invalid(self, form):
         print("❌ Form is invalid:", form.errors, form.non_field_errors())
         return super().form_invalid(form)
+
+
+def ticket_preview(request, rsvp_id):
+    # Get the RSVP/ticket object
+    rsvp = get_object_or_404(RSVP, id=rsvp_id)
+    qr_code = QRCode.objects.get(transaction_id=rsvp.transaction)
+    print('--', qr_code)
+    
+    # Verify user has permission to view this ticket
+    if not request.user.is_authenticated or (rsvp.attendee != request.user and not request.user.is_staff):
+        return HttpResponse("Unauthorized", status=403)
+    
+    context = {
+        'rsvp': rsvp,
+        'transaction': rsvp.transaction,
+        'event': rsvp.event,
+        'ticket_type': rsvp.transaction.ticket_type if rsvp.transaction else None,
+        'qr_code': qr_code
+    }
+    
+    # If PDF download requested
+    if request.GET.get('download') == 'pdf':
+        return generate_ticket_pdf(context, request)
+    
+    return render(request, 'events/ticket_preview.html', context)
+
+def generate_ticket_pdf(context, request):
+    """Generate PDF version of the ticket"""
+    html_string = render_to_string('events/ticket_pdf.html', context)
+    
+    # Create PDF
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf_file = html.write_pdf()
+    
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="ticket-{context["rsvp"].id}.pdf"'
+    return response

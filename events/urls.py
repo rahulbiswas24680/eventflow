@@ -1,7 +1,10 @@
-from django.urls import path
-from .views import events_home, event_detail, create_event, OrganizerListView, OrganizerCreateView, OrganizerUpdateView, OrganizerDeleteView
-from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
+from django.urls import path
+from django.views.generic import TemplateView
+
+from .views import (OrganizerCreateView, OrganizerDeleteView,
+                    OrganizerListView, OrganizerUpdateView, create_event,
+                    event_detail, events_home, ticket_preview)
 
 urlpatterns = [
     path("", events_home, name='events-home'),
@@ -27,4 +30,5 @@ urlpatterns = [
         login_required(TemplateView.as_view(template_name="events/my_rsvp.html")),
         name="my-rsvp-history",
     ),
+    path("ticket/<str:rsvp_id>/", ticket_preview, name='preview-ticket')
 ]

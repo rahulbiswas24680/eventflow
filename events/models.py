@@ -23,6 +23,7 @@ class Event(models.Model):
     is_virtual = models.BooleanField(default=False)
     is_published = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    has_finished_event = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -35,7 +36,13 @@ class Event(models.Model):
         return self.name + '-' + self.organizer.organizer_name
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
+        # Store original has_finished_event status before saving
+        if self.pk:
+            from django.db import transaction
+            old_instance = Event.objects.get(pk=self.pk)
+            self._original_has_finished_event = old_instance.has_finished_event
+        else:
+            self._original_has_finished_event = False
         super().save(*args, **kwargs)
 
     @property
@@ -104,7 +111,7 @@ class TicketType(models.Model):
         prod_price = stripe.Price.create(
             product=prod.id,
             currency='inr',
-            unit_amount=int(self.price)
+            unit_amount=int(self.price * 100)
         )
 
         return prod_price
@@ -114,8 +121,8 @@ class RSVP(models.Model):
     transaction_id = models.CharField(max_length=30, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     attendee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    ticket_qty = models.PositiveIntegerField(max_length=100, default=1)
-    total_charge = models.PositiveIntegerField(default=Decimal(0))
+    ticket_qty = models.PositiveIntegerField(default=1)
+    total_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     is_active = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)
@@ -130,8 +137,16 @@ class RSVP(models.Model):
         verbose_name_plural = 'RSVPs'
 
     def __str__(self):
-        return self.attendee.first_name + '-' + self.event.name
+        return self.attendee.id.__str__() + '-' + self.event.name
 
     def save(self, *args, **kwargs):
-        # Custom save logic here
+        # Decrement ticket quantity when RSVP is completed
+        if self.is_completed and not self.pk:
+            # Only decrement on new completed RSVPs
+            ticket_type = self.event.tickettype_set.first()
+            if ticket_type and ticket_type.quantity_available >= self.ticket_qty:
+                ticket_type.quantity_available -= self.ticket_qty
+                ticket_type.save()
+            else:
+                raise ValueError("Not enough tickets available")
         super().save(*args, **kwargs)

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .ticket {
+            border: 2px solid #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #4f46e5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            display: flex;
+        }
+        .qr-section {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            text-align: center;
+        }
+        .details {
+            flex: 2;
+            padding: 20px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h1>{{ event.name }}</h1>
+            <p>{{ event.start_time|date:"F j, Y \\a\\t g:i A" }}</p>
+        </div>
+        <div class="content">
+            <div class="qr-section">
+                {% if qr_code and qr_code.code_image %}
+                <img src="{{ qr_code.code_image.url }}" style="max-width: 120px;">
+                <p style="font-size: 10px; margin-top: 10px;">Scan for verification</p>
+                {% endif %}
+            </div>
+            <div class="details">
+                <table style="width: 100%; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Ticket Holder:</strong></td>
+                        <td>{{ rsvp.attendee.get_full_name|default:rsvp.attendee.username }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Ticket Type:</strong></td>
+                        <td>{{ ticket_type.name }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Quantity:</strong></td>
+                        <td>{{ transaction.quantity }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Location:</strong></td>
+                        <td>{{ event.location }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Ticket ID:</strong></td>
+                        <td><strong>{{ rsvp.id|upper }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Generated on {% now "M j, Y g:i A" %} • {{ transaction.quantity }} ticket(s) • {{ transaction.currency }} {{ transaction.amount }}</p>
+        </div>
+    </div>
+</body>
+</html>

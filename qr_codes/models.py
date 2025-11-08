@@ -5,6 +5,7 @@ import uuid
 from io import BytesIO
 
 import segno
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
 
@@ -38,15 +39,12 @@ class QRCode(models.Model):
         tkn = None
         if not self.code_data and self.transaction:
             transaction_obj = self.transaction
-            self.code_data = f"""//////
-{transaction_obj.ticket_type.name}
-{transaction_obj.currency} {transaction_obj.amount}
-Qty: {transaction_obj.quantity}
-Status: {transaction_obj.payment_status}
-RSVP: {transaction_obj.rsvp.id}
-TxnID: {transaction_obj.transaction_id}
-//////
-"""
+            
+            # Generate direct ticket page URL for QR code
+            ticket_url = f"{settings.SITE_URL}/ticket/{transaction_obj.rsvp.id}/"
+            
+            # Store both human-readable info AND the direct URL
+            self.code_data = ticket_url  # QR code will contain the direct URL
 
         if not self.code_image and self.code_data:
             self.generate_qrcode(self.code_data)

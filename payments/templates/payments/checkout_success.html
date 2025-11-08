@@ -28,6 +28,12 @@
 $(document).ready(function(){
     var sessionId = "{{ session_id }}";
 
+    // Clear cart immediately
+    clearCart();
+    
+    // Prevent back navigation to checkout
+    preventBackNavigation();
+
     if(sessionId){
         // Poll backend for QR code every 2s until ready
         function fetchQr(){
@@ -49,6 +55,52 @@ $(document).ready(function(){
             });
         }
         fetchQr();
+    }
+
+    function clearCart() {
+        // Clear cart via API
+        $.ajax({
+            url: "{% url 'reset-cart' %}",  // Create this endpoint
+            type: "POST",
+            data: { reset: true },
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            success: function() {
+                console.log("Cart cleared after successful payment");
+                // Update cart count in navbar
+                $('.cart-count').text('0');
+            },
+            error: function (xhr) {
+              console.error("Error resetting cart:", xhr.responseText);
+            }
+        });
+    }
+
+    function preventBackNavigation() {
+        // Replace history entry so back button doesn't go to checkout
+        window.history.replaceState(null, null, window.location.href);
+        
+        // Prevent navigation back to checkout
+        window.onpopstate = function(event) {
+            window.history.go(1);
+        };
+    }
+
+    // Helper to fetch CSRF token from cookies (needed in Django)
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
 });
 </script>

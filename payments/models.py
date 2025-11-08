@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.db import models
 import stripe
 from choices import (
     CURRENCY_CHOICES,
@@ -17,7 +16,7 @@ class Transaction(models.Model):
     """The Transaction model for evnents and tickets"""
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    # rsvp = models.OneToOneField(RSVP, on_delete=models.PROTECT, default=None)
+    rsvp = models.OneToOneField('events.RSVP', on_delete=models.PROTECT, null=True, blank=True)
     ticket_type = models.ForeignKey(TicketType, on_delete=models.PROTECT)
     currency = models.CharField(
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
@@ -72,7 +71,7 @@ class EventPaymentBill(models.Model):
     
     """
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, default=None)
+    organizer = models.ForeignKey('user_profiles.Organizer', on_delete=models.PROTECT, default=None)
     event = models.ForeignKey(Event, on_delete=models.PROTECT)
     currency = models.CharField(
         choices=CURRENCY_CHOICES, max_length=30, default=CURRENCY_CHOICES[1][1]
@@ -95,7 +94,7 @@ class EventPaymentBill(models.Model):
         verbose_name_plural = "Event Payment Bills"
 
     def __str__(self):
-        return self.event.organizer.username + "-" + self.amount
+        return f"{self.organizer.organizer_name}-{self.amount}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -138,7 +137,7 @@ class TransactionOfOrganizer(models.Model):
         verbose_name_plural = "Transactions of Organizer"
 
     def __str__(self):
-        return self.event_bill.event.organizer.username + "-" + self.amount
+        return f"{self.event_bill.organizer.organizer_name}-{self.amount}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

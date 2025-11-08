@@ -173,7 +173,7 @@ class TicketCheckoutApiView(APIView):
                 client_reference_id=str(request.user.id),
                 metadata={"user_id": request.user.id},
             )
-
+            print('checkout session url', settings.SITE_URL)
             # Add Stripe session_id to each transaction and bulk create
             for txn in transactions_to_create:
                 txn.session_id = checkout_session["id"]
@@ -222,7 +222,7 @@ def stripe_webhook(request):
             for txn in transactions:
                 txn.payment_status = "SUCCESS"
                 txn.transaction_id = session.get("payment_intent")
-                txn.save()
+                
 
                 ticket_obj = txn.ticket_type
 
@@ -236,6 +236,9 @@ def stripe_webhook(request):
                     txn.amount
                 )
 
+                # Link transaction with the rsvp
+                txn.rsvp = rsvp_obj
+                txn.save()
                 # Generate QR linked to transaction + RSVP
                 qr = link_with_qrcode(txn, rsvp_obj)
 
@@ -279,18 +282,18 @@ def transaction_create(checkout_session, ticket_obj, rsvp_obj, quantity):
 
 
 def link_with_qrcode(transaction_obj, rsvp):
-    code_data = f"""//////
-{transaction_obj.ticket_type.name}-
-{transaction_obj.currency}-
-{transaction_obj.amount}-
-{transaction_obj.quantity}-
-{transaction_obj.payment_status}-
-{rsvp.id}-
-{transaction_obj.transaction_id}
-//////
-"""
+#     code_data = f"""//////
+# {transaction_obj.ticket_type.name}-
+# {transaction_obj.currency}-
+# {transaction_obj.amount}-
+# {transaction_obj.quantity}-
+# {transaction_obj.payment_status}-
+# {rsvp.id}-
+# {transaction_obj.transaction_id}
+# //////
+# """
     qr_obj = QRCode.objects.create(
-        transaction=transaction_obj, code_data=code_data
+        transaction=transaction_obj
     )
     return qr_obj
 

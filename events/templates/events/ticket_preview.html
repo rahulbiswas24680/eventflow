@@ -1,0 +1,150 @@
+<!-- events/ticket_preview.html -->
+{% extends "events/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'my-rsvp-history' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to My Tickets
+        </a>
+        <div>
+            <button onclick="window.print()" class="btn btn-outline-primary me-2">
+                <i class="bi bi-printer"></i> Print Ticket
+            </button>
+            <a href="?download=pdf" class="btn btn-primary">
+                <i class="bi bi-download"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Ticket Container -->
+    <div class="ticket-container mx-auto" style="max-width: 600px;">
+        <!-- Ticket Header -->
+        <div class="card border-0 shadow-lg">
+            <!-- Event Header -->
+            <div class="card-header bg-gradient text-white py-4" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="text-center">
+                    <h1 class="h3 mb-2">{{ event.name }}</h1>
+                    <p class="mb-0 opacity-75">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ event.date|date:"F j, Y" }} at {{ event.date|date:"g:i A" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- Ticket Body -->
+                <div class="row g-0">
+                    <!-- QR Code Section -->
+                    <div class="col-md-4 border-end p-4 d-flex align-items-center justify-content-center">
+                        {% if qr_code and qr_code.code_image %}
+                            <div class="text-center">
+                                <img src="{{ qr_code.code_image.url }}" 
+                                     alt="Ticket QR Code" 
+                                     class="img-fluid mb-2"
+                                     style="max-width: 150px;">
+                                <small class="text-muted">Scan for verification</small>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="bi bi-qr-code-scan display-4"></i>
+                                <p class="small mt-2">QR Code Generating...</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Ticket Details -->
+                    <div class="col-md-8 p-4">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <small class="text-muted d-block">Ticket Holder</small>
+                                <strong>{{ rsvp.attendee.get_full_name|default:rsvp.attendee.username }}</strong>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted d-block">Ticket Type</small>
+                                <strong>{{ ticket_type.name }}</strong>
+                            </div>
+                            
+                            <div class="col-6 mb-3">
+                                <small class="text-muted d-block">Quantity</small>
+                                <strong>{{ transaction.quantity }} ticket(s)</strong>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted d-block">Total Paid</small>
+                                <strong>{{ transaction.currency }} {{ transaction.amount }}</strong>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <small class="text-muted d-block">Event Location</small>
+                                <strong>{{ event.location }}</strong>
+                            </div>
+                            
+                            <div class="col-12">
+                                <small class="text-muted d-block">Ticket ID</small>
+                                <code class="text-dark">{{ rsvp.id|upper }}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer with Barcode -->
+                <div class="border-top p-3 bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Present this ticket at the entrance. Valid for {{ transaction.quantity }} person(s).
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <small class="text-muted">
+                                Generated on {% now "M j, Y g:i A" %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Features Notice -->
+        <div class="alert alert-info mt-4">
+            <div class="d-flex">
+                <i class="bi bi-shield-check me-2"></i>
+                <div>
+                    <small>
+                        <strong>Security Features:</strong> This ticket contains a unique QR code, 
+                        security watermark, and verification ID. Duplicate tickets will be rejected.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .alert, .ticket-actions {
+        display: none !important;
+    }
+    .ticket-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+    .card {
+        box-shadow: none !important;
+        border: 2px solid #333 !important;
+    }
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.ticket-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+</style>
+{% endblock %}

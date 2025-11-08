@@ -23,38 +23,41 @@
 </style>
 <section class="container py-3">
     <!-- Search and Create Event Section -->
-<div class="d-flex mt-2">
-  <div class="search-container w-100 position-relative">
-    <h2 class="text-primary mb-4 fw-bold"><i class="bi bi-calendar2-event-fill"></i> Find Events</h2>
+    <div class="d-flex mt-2">
+        <div class="search-container w-100 position-relative">
+            <h2 class="text-primary mb-4 fw-bold"><i class="bi bi-calendar2-event-fill"></i> Find Events</h2>
 
-    <div class="row align-items-center position-relative">
-        <div class="{% if can_create_event %}col-12 col-sm-10{% else %}col-12{% endif %} mb-1">
-            <input type="text" id="event-search" 
-                   class="form-control"
-                   placeholder="Search events by name, category, or location...">
-            <span class="position-absolute end-0 me-3 text-muted">
-              <i class="fas fa-search"></i>
-            </span>
-            
-            <!-- Loader -->
-            <div id="search-loader" class="mt-1 ms-2 d-none">
-              <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+            <div class="row align-items-center">
+                <div class="{% if can_create_event %}col-12 col-sm-10{% else %}col-12{% endif %} mb-1">
+                    <div class="position-relative">
+                        <input type="text" id="event-search" 
+                            class="form-control"
+                            placeholder="Search events by name, category, or location...">
+                        <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-muted">
+                        <i class="fas fa-search"></i>
+                        </span>
+                        
+                        <!-- Loader -->
+                        <div id="search-loader" class="position-absolute start-0 mt-1 ms-2 d-none">
+                        <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+                        </div>
+                    
+                        <!-- Dropdown with data-bs-toggle for proper Bootstrap positioning -->
+                        <div id="event-dropdown" class="dropdown-menu w-100 shadow-sm show" 
+                            data-bs-popper="static"
+                            style="max-height: 300px; overflow-y: auto; position: absolute; inset: 0px auto auto 0px; margin: 10px 0; transform: translate(0px, 38px);"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-2 mx-auto">
+                    {% if can_create_event %}
+                    <a href="{% url 'create-event' %}" class="btn btn-dark shadow-sm d-flex align-items-center text-nowrap">
+                    <i class="bi bi-plus-circle fs-6 me-2"></i> Create Event
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-        
-            <!-- Dropdown Results -->
-            <div id="event-dropdown" class="dropdown-menu w-100 shadow-sm mt-1" style="max-height: 300px; overflow-y: auto;"></div>
-        </div>
-        <div class="col-12 col-sm-2 mx-auto">
-            {% if can_create_event %}
-            <a href="{% url 'create-event' %}" class="btn btn-dark shadow-sm d-flex align-items-center text-nowrap">
-              <i class="bi bi-plus-circle fs-6 me-2"></i> Create Event
-            </a>
-            {% endif %}
         </div>
     </div>
-
-  </div>
-</div>
 
 
 
