@@ -88,14 +88,16 @@ class TicketTypeSerializer(serializers.ModelSerializer):
 
 class RSVPSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source='event.name', read_only=True)
-    attendee_name = serializers.CharField(source='attendee.first_name', read_only=True)
+    attendee_name = serializers.CharField(source='attendee.username', read_only=True)
     attendee_email = serializers.CharField(source='attendee.email', read_only=True)
     ticket_qr = serializers.SerializerMethodField(read_only=True)
+    ticket_type = serializers.SerializerMethodField(read_only=True)
+    status = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = RSVP
         fields = "__all__"
-        read_only_fields = ('event_name', 'attendee_name', 'attendee_email', 'ticket_qr')
+        read_only_fields = ('event_name', 'attendee_name', 'attendee_email', 'ticket_qr', 'ticket_type')
 
     def get_ticket_qr(self, obj):
         try:
@@ -107,3 +109,22 @@ class RSVPSerializer(serializers.ModelSerializer):
                 return qr_obj.code_image.url
         except QRCode.DoesNotExist:
             return None
+
+    def get_ticket_type(self, obj):
+        # ticket_price = obj.total_charge // obj.ticket_qty
+        # ticket = obj.event.tickettype_set.filter(price=ticket_price)
+        # print(ticket)
+        # return ticket[0].name if ticket else None
+        try:
+            return obj.transaction.ticket_type.name
+        except Transaction.DoesNotExist:
+            return None
+        
+    def get_status(self, obj):
+        if obj.is_attended:
+            status = "attended"
+        elif not obj.is_attended:
+            status = "registered"
+        elif obj.is_cancelled:
+            status = "cancelled"
+        return status

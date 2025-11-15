@@ -119,11 +119,12 @@ class TicketType(models.Model):
 
 class RSVP(models.Model):
     transaction_id = models.CharField(max_length=30, default=None)
-    event = models.ForeignKey(Event, on_delete=models.PROTECT)
+    event = models.ForeignKey(Event, on_delete=models.PROTECT, related_name='attendees')
     attendee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     ticket_qty = models.PositiveIntegerField(default=1)
     total_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     is_active = models.BooleanField(default=False)
+    is_attended = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)
     is_refunded = models.BooleanField(default=False)
@@ -140,7 +141,16 @@ class RSVP(models.Model):
         return self.attendee.id.__str__() + '-' + self.event.name
 
     def save(self, *args, **kwargs):
-        # Decrement ticket quantity when RSVP is completed
+        # Auto-set is_completed based on other statuses
+        if self.is_attended and not self.is_cancelled:
+            self.is_completed = True
+        elif self.is_cancelled:
+            self.is_completed = False
+            
+        # Auto-set is_active
+        self.is_active = not (self.is_cancelled or self.is_completed or self.is_expired)
+        
+        # Handle ticket quantity when RSVP is completed
         if self.is_completed and not self.pk:
             # Only decrement on new completed RSVPs
             ticket_type = self.event.tickettype_set.first()
@@ -149,4 +159,16 @@ class RSVP(models.Model):
                 ticket_type.save()
             else:
                 raise ValueError("Not enough tickets available")
+                
         super().save(*args, **kwargs)
+
+    @property
+    def status(self):
+        if self.is_cancelled:
+            return "cancelled"
+        elif self.is_attended:
+            return "attended"
+        elif self.is_completed:
+            return "completed"
+        else:
+            return "registered"

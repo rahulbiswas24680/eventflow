@@ -1,0 +1,444 @@
+{% extends "events/base.html" %}
+{% load static %}
+
+{% block title %}Manage Attendees - {{ event.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Manage Attendees</h1>
+            <p class="text-muted mb-0">{{ event.name }}</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'our-events' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Events
+            </a>
+            <button class="btn btn-light" onclick="exportAttendees()">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">Total Registered</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="totalRegistered">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">Attended</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="attendedCount">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">Pending</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="pendingCount">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">Attendance Rate</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="attendanceRate">0%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% elif message.tags == 'error' %}times-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <input type="text" id="searchAttendees" class="form-control" placeholder="Search attendees...">
+                </div>
+                <div class="col-md-4">
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="attended">Attended</option>
+                        <option value="registered">Registered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="ticketFilter" class="form-select">
+                        <option value="">All Ticket Types</option>
+                        {% for ticket_type in ticket_types %}
+                        {{ ticket_type.name }}
+                            <option value="{{ ticket_type.ticket_id }}">{{ ticket_type.ticket_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendees Table -->
+<div class="card shadow" id="attendees-table">
+    <div id="loading-indicator" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2">Loading attendees...</p>
+    </div>
+    <div class="card-header py-3" style="display:none;">
+        <h6 class="m-0 fw-bold text-primary">Attendees List</h6>
+    </div>
+    <div class="card-body" style="display:none;">
+        <div class="table-responsive">
+            <table class="table table-hover" id="attendeesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Attendee</th>
+                        <th>Email</th>
+                        <th>Ticket Type</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-end">Total Paid</th>
+                        <th class="text-center">Registered</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Attendees will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary -->
+<div class="row mt-4 align-items-center">
+    <div class="col-md-6">
+        <div class="text-muted">
+            Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> attendees
+        </div>
+    </div>
+    <div class="col-md-6 d-flex justify-content-end">
+        <button id="prevPage" class="btn btn-outline-secondary me-2" disabled>Previous</button>
+        <span id="currentPage" class="mx-2">Page 1</span>
+        <button id="nextPage" class="btn btn-outline-secondary">Next</button>
+    </div>
+</div>
+        <div id="no-attendees-message" class="text-center py-5" style="display:none;">
+            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No attendees registered yet</h5>
+            <p class="text-muted">Attendees will appear here once they register for your event.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Form for Actions -->
+<form id="actionForm" method="post" action="{% url 'event-attendees' event.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="rsvp_id" id="actionRsvpId">
+    <input type="hidden" name="action" id="actionType">
+</form>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function () {
+const eventId = "{{ event.id }}";
+console.log("Event ID:", eventId);
+let currentPage = 1;
+
+    function showLoading(show) {
+        if (show) {
+            $("#loading-indicator").show();
+            $("#attendeesTable").closest(".card-body").hide(); // Hide the card-body containing the table
+            $("#attendeesTable").closest(".card-header").hide(); // Hide the card-header
+            $("#no-attendees-message").hide();
+        } else {
+            $("#loading-indicator").hide();
+        }
+    }
+
+function loadAttendees(filters = {}, page = 1) {
+    currentPage = page;
+    filters.page = page;
+    showLoading(true);
+
+    $.ajax({
+        url: `/api/events/rsvps/?event=${eventId}`,
+        data: filters,
+        type: "GET",
+        success: function (data) {
+            showLoading(false);
+            renderTable(data.results);
+            if (data.stats) {
+                updateStats(data.stats);
+            } else {
+                updateStats({
+                    total_registered: 0,
+                    attended_count: 0,
+                    pending_count: 0,
+                    attendance_rate: 0
+                });
+            }
+            if (!data.results || data.results.length === 0) {
+                $("#no-attendees-message").show();
+                $("#attendeesTable").closest(".card-body").hide();
+                $("#attendeesTable").closest(".card-header").hide();
+            } else {
+                $("#no-attendees-message").hide();
+                $("#attendeesTable").closest(".card-body").show();
+                $("#attendeesTable").closest(".card-header").show();
+            }
+            // Update pagination controls
+            $("#totalCount").text(data.count || 0);
+            $("#visibleCount").text(data.results ? data.results.length : 0);
+            $("#currentPage").text(`Page ${currentPage}`);
+            $("#prevPage").prop("disabled", !data.previous);
+            $("#nextPage").prop("disabled", !data.next);
+        },
+        error: function () {
+            showLoading(false);
+            $("#attendeesTable tbody").html('<tr><td colspan="8" class="text-center text-danger">Failed to load attendees.</td></tr>');
+            $("#no-attendees-message").show();
+            $("#attendeesTable").closest(".card-body").hide();
+            $("#attendeesTable").closest(".card-header").hide();
+            // Reset pagination controls on error
+            $("#prevPage").prop("disabled", true);
+            $("#nextPage").prop("disabled", true);
+        }
+    });
+}
+
+    function renderTable(rsvps) {
+        const tbody = $("#attendeesTable tbody");
+        tbody.empty();
+
+        if (!rsvps || !rsvps.length) {
+            return;
+        }
+
+        for (let i = 0; i < rsvps.length; i++) {
+            const rsvp = rsvps[i];
+            console.log('status --', rsvp.status)
+            let statusBadge;
+
+            switch (rsvp.status) {
+                case "attended":
+                    statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Attended</span>';
+                    break;
+
+                case "cancelled":
+                    statusBadge = '<span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Cancelled</span>';
+                    break;
+
+                case "registered":
+                default:
+                    statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Registered</span>';
+                    break;
+            }
+
+            const row = `
+                <tr data-status="${rsvp.status}" data-ticket-type="${rsvp.ticket_type}" data-search="${rsvp.attendee_name} ${rsvp.attendee_email}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user me-3 text-muted"></i>
+                            <div>
+                                <div class="fw-bold">${rsvp.attendee_name || "Anonymous"}</div>
+                                <small class="text-muted">ID: ${String(rsvp.id || 0).padStart(6, '0')}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="mailto:${rsvp.attendee_email}" class="text-decoration-none">
+                            ${rsvp.attendee_email}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">${rsvp.ticket_type}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="fw-bold">${rsvp.ticket_qty}</span>
+                    </td>
+                    <td class="text-end">
+                            <span class="fw-bold text-success">$${parseFloat(rsvp.total_charge || 0).toFixed(2)}</span>
+                    </td>
+                    <td class="text-center">
+                            <small class="text-muted">${rsvp.created_at ? new Date(rsvp.created_at).toLocaleDateString() : ''}</small>
+                            <br>
+                            <small class="text-muted">${rsvp.created_at ? new Date(rsvp.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</small>
+                    </td>
+                    <td class="text-center">
+                        ${statusBadge}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            ${rsvp.status !== 'cancelled' ? `
+                                ${rsvp.status === 'attended'
+                                    ? `<button type="button" class="btn btn-outline-warning btn-update-status" data-rsvp-id="${rsvp.id}" data-action="mark_unattended" title="Mark as Unattended"><i class="fas fa-undo"></i></button>`
+                                    : `<button type="button" class="btn btn-outline-success btn-update-status" data-rsvp-id="${rsvp.id}" data-action="mark_attended" title="Mark as Attended"><i class="fas fa-check"></i></button>`}
+                                <button type="button" class="btn btn-outline-info btn-update-status" data-rsvp-id="${rsvp.id}" data-action="cancel" title="Cancel Registration"><i class="fas fa-times"></i></button>
+                            ` : ""}
+                        </div>
+                    </td>
+                </tr>`;
+            tbody.append(row);
+        }
+    }
+
+function updateStats(stats) {
+    stats = stats || {
+        total_registered: 0,
+        attended_count: 0,
+        pending_count: 0,
+        attendance_rate: 0
+    };
+    $("#totalRegistered").text(stats.total_registered);
+    $("#attendedCount").text(stats.attended_count);
+    $("#pendingCount").text(stats.pending_count);
+    $("#attendanceRate").text(`${stats.attendance_rate}%`);
+}
+
+    // Filtering and searching
+$("#searchAttendees, #statusFilter, #ticketFilter").on("input change", function () {
+    const filters = {
+        search: $("#searchAttendees").val(),
+        status: $("#statusFilter").val(),
+        ticket: $("#ticketFilter").val(),
+    };
+    loadAttendees(filters, 1); // Reset to first page when filters change
+});
+
+    // Action buttons
+    $(document).on("click", ".btn-update-status", function () {
+        const rsvpId = $(this).data("rsvp-id");
+        const action = $(this).data("action");
+        const btn = $(this);
+
+        btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: `/api/events/rsvp/${rsvpId}/update/`,
+            type: "PATCH",
+            data: JSON.stringify({ action: action }),
+            contentType: "application/json",
+            headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+            success: function (res) {
+                showToast("success", res.message);
+                loadAttendees();
+            },
+            error: function (xhr) {
+                showToast("error", xhr.responseJSON?.error || "Action failed");
+            },
+            complete: function () {
+                btn.prop("disabled", false).html('<i class="fas fa-check"></i>');
+            }
+        });
+    });
+
+    // Toast (Bootstrap 5)
+    function showToast(type, message) {
+        const bg = type === "success" ? "bg-success" : "bg-danger";
+        const toast = $(`<div class="toast align-items-center text-white ${bg} border-0">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`);
+        $("#toastContainer").append(toast);
+        const bsToast = new bootstrap.Toast(toast[0], { delay: 2500 });
+        bsToast.show();
+        toast.on("hidden.bs.toast", () => toast.remove());
+    }
+
+    // Initialize
+    loadAttendees();
+
+    // Pagination controls
+    $("#prevPage").click(function() {
+        if (currentPage > 1) {
+            loadAttendees({
+                search: $("#searchAttendees").val(),
+                status: $("#statusFilter").val(),
+                ticket: $("#ticketFilter").val(),
+            }, currentPage - 1);
+        }
+    });
+
+    $("#nextPage").click(function() {
+        loadAttendees({
+            search: $("#searchAttendees").val(),
+            status: $("#statusFilter").val(),
+            ticket: $("#ticketFilter").val(),
+        }, currentPage + 1);
+    });
+});
+</script>
+
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+}
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+</style>
+{% endblock %}

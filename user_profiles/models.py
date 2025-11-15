@@ -17,6 +17,8 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text='Specific permissions for this user.'
     )
+    available_roles = models.ManyToManyField('Role', related_name='users')
+    current_role = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True, blank=True, related_name='active_users')
     phone = models.CharField(max_length=20, blank=True)
     profession = models.CharField(max_length=100, blank=True)
     education = models.CharField(max_length=100, blank=True)
@@ -80,3 +82,22 @@ class Organizer(models.Model):
     def save(self, *args, **kwargs):
         self.organizer_slug = slugify(self.organizer_name)
         super().save(*args, **kwargs)
+
+
+class Role(models.Model):
+    ROLE_TYPES = (
+        ('attendee', 'Attendee'),
+        ('organizer', 'Organizer'),
+    )
+    
+    name = models.CharField(max_length=50, choices=ROLE_TYPES, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'roles'
+        verbose_name = 'Role'
+        verbose_name_plural = 'Roles'
+    
+    def __str__(self):
+        return self.name

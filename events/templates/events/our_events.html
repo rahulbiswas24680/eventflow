@@ -1,0 +1,225 @@
+<!-- templates/events/our_events.html -->
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}Our Events - Organizer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Our Events</h1>
+            <p class="text-muted mb-0">Manage your events and track registrations</p>
+        </div>
+        <div>
+            <a href="{% url 'create-event' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <form method="get" class="d-flex">
+                        {% if status_filter != 'all' %}
+                            <input type="hidden" name="status" value="{{ status_filter }}">
+                        {% endif %}
+                        <input type="text" name="search" class="form-control me-2" 
+                            placeholder="Search events..." value="{{ search_query }}">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <div class="btn-group float-md-end">
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=all" class="btn btn-outline-primary {% if status_filter == 'all' %}active{% endif %}">
+                            All ({{ total_events }})
+                        </a>
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=active" class="btn btn-outline-success {% if status_filter == 'active' %}active{% endif %}">
+                            Active
+                        </a>
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=upcoming" class="btn btn-outline-info {% if status_filter == 'upcoming' %}active{% endif %}">
+                            Upcoming
+                        </a>
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=past" class="btn btn-outline-secondary {% if status_filter == 'past' %}active{% endif %}">
+                            Past
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Table -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event Title</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Capacity</th>
+                            <th>Registered</th>
+                            <th>Attended</th>
+                            <th>Attendance Rate</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>{{ event.name }}</strong>
+                                {% if event.is_draft %}
+                                    <span class="badge bg-warning ms-1">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ event.date|date:"M d, Y" }}</small>
+                            </td>
+                            <td>{{ event.location }}</td>
+                            <td>{{ event.max_attendees }}</td>
+                            <td>{{ event.registered_count }}</td>
+                            <td>{{ event.attended_count }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar {% if event.attendance_rate > 70 %}bg-success{% elif event.attendance_rate > 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ event.attendance_rate }}%;"
+                                         aria-valuenow="{{ event.attendance_rate }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ event.attendance_rate|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if event.date < now %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% elif event.date > now %}
+                                    <span class="badge bg-success">Upcoming</span>
+                                {% else %}
+                                    <span class="badge bg-primary">Active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <!-- <a href="{% url 'event-detail' event.id %}" class="btn btn-outline-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a> -->
+                                    <a href="{% url 'update-event' event.id %}" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'event-attendees' event.id %}" class="btn btn-outline-info" title="Attendees">
+                                        <i class="fas fa-users"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <h5>No events found</h5>
+                                <p class="text-muted">Create your first event to get started</p>
+                                <a href="{% url 'create-event' %}" class="btn btn-primary">Create Event</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Events pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <!-- First Page -->
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;&laquo;</span>
+                </li>
+            {% endif %}
+
+            <!-- Previous Page -->
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next Page -->
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+            {% endif %}
+
+            <!-- Last Page -->
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if status_filter != 'all' %}status={{ status_filter }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;&raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Pagination Info -->
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_events }} events
+            {% if search_query %}
+                for "{{ search_query }}"
+            {% endif %}
+        </small>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

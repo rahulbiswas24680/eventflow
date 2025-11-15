@@ -1,0 +1,477 @@
+<!-- templates/dashboard/dashboard.html -->
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</p>
+        </div>
+        <div class="role-switcher">
+            <!-- Include your role switcher component here -->
+        </div>
+    </div>
+
+    {% if role == 'organizer' %}
+    <!-- Organizer Dashboard -->
+    <div class="row">
+        <!-- Key Metrics -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-play-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Attendees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_attendees }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Total Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_revenue }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Monthly Growth Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Growth</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="monthlyGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Funnel -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Registration Funnel</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th class="text-center">Registered</th>
+                                    <th class="text-center">Attended</th>
+                                    <th class="text-center">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in registration_data %}
+                                <tr>
+                                    <td class="text-truncate" style="max-width: 100px;" title="{{ data.event }}">
+                                        {{ data.event }}
+                                    </td>
+                                    <td class="text-center">{{ data.registered }}/{{ data.capacity }}</td>
+                                    <td class="text-center">{{ data.attended }}</td>
+                                    <td class="text-center">{{ data.conversion_rate }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Events -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Events</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event Name</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Attendees</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in recent_events %}
+                                <tr>
+                                    <td>{{ event.name }}</td>
+                                    <td>{{ event.date|date:"M d, Y" }}</td>
+                                    <td>{{ event.location }}</td>
+                                    <td>{{ event.attendees.count }}</td>
+                                    <td>
+                                        {% if event.has_finished_event %}
+                                            <span class="badge bg-secondary">Completed</span>
+                                        {% elif event.date > now %}
+                                            <span class="badge bg-success">Upcoming</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Active</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Attendee Dashboard -->
+    <div class="row">
+        <!-- Attendee Metrics -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Registered</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_registered }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ticket-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Events Attended</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ attended_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Upcoming Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-plus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Cancelled</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cancelled_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendee Charts -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Your Event Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="attendeeActivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Registrations -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Registrations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Registered On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for registration in recent_registrations %}
+                                <tr>
+                                    <td>{{ registration.event.name }}</td>
+                                    <td>{{ registration.event.date|date:"M d, Y" }}</td>
+                                    <td>{{ registration.event.location }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
+                                            {% if registration.is_completed %}Attended{% elif registration.is_cancelled %}Cancelled{% else %}Registered{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ registration.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Set up CSRF token for AJAX requests
+    const getCookie = (name) => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Function to fetch chart data
+    async function fetchChartData(chartType) {
+        try {
+            const response = await fetch(`/events/dashboard/chart-data/?chart_type=${chartType}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.data;
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            return [];
+        }
+    }
+
+    // Render Monthly Growth Chart
+    async function renderMonthlyGrowthChart() {
+        const monthlyData = await fetchChartData('monthly_growth');
+        const ctx = document.getElementById('monthlyGrowthChart');
+
+        if (ctx && monthlyData.length > 0) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.map(item => item.month),
+                    datasets: [{
+                        label: 'Events',
+                        data: monthlyData.map(item => item.events),
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }, {
+                        label: 'Attendees',
+                        data: monthlyData.map(item => item.attendees),
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        backgroundColor: 'rgba(28, 200, 138, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }, {
+                        label: 'Revenue',
+                        data: monthlyData.map(item => item.revenue),
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: "rgba(0, 0, 0, .075)",
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Render Attendee Activity Chart (for attendee role)
+    async function renderAttendeeActivityChart() {
+        const monthlyActivity = await fetchChartData('monthly_activity');
+        const ctx = document.getElementById('attendeeActivityChart');
+
+        if (ctx && monthlyActivity.length > 0) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyActivity.map(item => item.month),
+                    datasets: [{
+                        label: 'Registrations',
+                        data: monthlyActivity.map(item => item.registrations),
+                        backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Attended',
+                        data: monthlyActivity.map(item => item.attended),
+                        backgroundColor: 'rgba(28, 200, 138, 0.8)',
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: "rgba(0, 0, 0, .075)",
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize charts based on role
+    document.addEventListener('DOMContentLoaded', () => {
+        const role = "{{ role }}"; // Get role from Django context
+        console.log('Dashboard Role (from Django context):', role); // Debugging: Log the role
+        console.log('CSRF Token:', csrftoken); // Debugging: Log the CSRF token
+
+        if (role === 'organizer') {
+            renderMonthlyGrowthChart();
+        } else if (role === 'attendee') {
+            renderAttendeeActivityChart();
+        }
+    });
+</script>
+{% endblock %}

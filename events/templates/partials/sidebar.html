@@ -109,26 +109,19 @@
       style="color: #9be2b6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 700;"> EventFlow</span>
   </a>
   <hr>
+  {% if request.user.current_role.name == 'organizer' %}
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="{% url 'events-home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}">
+      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path == '/dashboard' %}active{% endif %}">
         <i class="bi bi-speedometer2"></i>
-        <span class="sidebar-text">Home</span>
+        <span class="sidebar-text">Dashboard</span>
       </a>
     </li>
 
     <li>
-      <a href="#" class="nav-link text-white {% if request.path|startswith:'/explore' %}active{% endif %}">
-        <i class="bi bi-compass"></i>
-        <span class="sidebar-text">Explore</span>
-      </a>
-    </li>
-
-    <li>
-      <a href="{% url 'my-rsvp-history' %}"
-        class="nav-link text-white {% if request.path|startswith:'/my-rsvp' %}active{% endif %}">
-        <i class="bi bi-ticket-perforated-fill"></i>
-        <span class="sidebar-text">My Events</span>
+      <a href="{% url 'our-events' %}" class="nav-link text-white {% if request.path|startswith:'/our-events' %}active{% endif %}">
+        <i class="bi bi-calendar-event"></i>
+        <span class="sidebar-text">Our Events</span>
       </a>
     </li>
 
@@ -148,6 +141,36 @@
       </a>
     </li>
   </ul>
+  {% else %}
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path == '/dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        <span class="sidebar-text">Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'events-home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}">
+        <i class="bi bi-binoculars"></i>
+        <span class="sidebar-text">Explore Events</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'my-rsvp-history' %}"
+        class="nav-link text-white {% if request.path|startswith:'/my-rsvp' %}active{% endif %}">
+        <i class="bi bi-ticket-perforated-fill"></i>
+        <span class="sidebar-text">My Events</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'user-profile' %}"
+        class="nav-link text-white {% if request.path|startswith:'/profile' %}active{% endif %}">
+        <i class="bi bi-person-fill"></i>
+        <span class="sidebar-text">Profile</span>
+      </a>
+    </li>
+  </ul>
+  {% endif %}
   <hr>
   <div class="dropdown">
     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"

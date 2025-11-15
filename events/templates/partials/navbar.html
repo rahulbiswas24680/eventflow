@@ -16,14 +16,29 @@
         </li>
       </ul>
       <ul class="navbar-nav d-flex align-items-center">
-        <li class="nav-item mx-3">
-          <a href="#" class="d-flex align-items-center text-decoration-none text-dark">
-            <i class="bi bi-person-circle fs-5 me-2"></i>
-            <span class="fw-semibold">{{ request.user.username }}</span>
-          </a>
-        </li>
+        
+        <!-- role_switcher.html -->
+        <div class="role-switcher">
+            <form method="post" action="{% url 'switch_role' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        Role
+                    </span>
+                    <select name="role_id" onchange="this.form.submit()" class="form-select form-select-sm border-start-0">
+                        <option value="">Switch Role...</option>
+                        {% for role in request.user.available_roles.all %}
+                            <option value="{{ role.id }}" 
+                                {% if request.user.current_role.id == role.id %}selected{% endif %}>
+                                {{ role.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
       </ul>
     </div>
   </div>
 </nav>
-

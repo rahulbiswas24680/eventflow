@@ -99,7 +99,7 @@
       success: function(data) {
         $('#loading-message').hide();
 
-        if (data.length === 0) {
+        if (data.results.length === 0) {
           $('#error-message').removeClass('d-none').text('No RSVPs found.');
           return;
         }
@@ -107,7 +107,7 @@
         var tableBody = $('#rsvp-table-body');
         tableBody.empty();
 
-        data.forEach(function(rsvp) {
+        data.results.forEach(function(rsvp) {
 let status = '';
 let statusText = '';
 if (rsvp.is_active) { status = '<span class="badge bg-success fw-semibold">Active</span>'; statusText = 'Active'; }
