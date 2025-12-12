@@ -6,7 +6,7 @@ from .views import (OrganizerCreateView, OrganizerDeleteView,
                     OrganizerListView, OrganizerUpdateView, create_event,
                     dashboard, event_detail, events_home, our_events,
                     switch_role, ticket_preview, dashboard_chart_data,
-                    update_event, manage_attendees)
+                    update_event, manage_attendees, user_profile)
 
 urlpatterns = [
    
@@ -15,13 +15,11 @@ urlpatterns = [
     path("dashboard/chart-data/", dashboard_chart_data, name='dashboard-chart-data'),
     path(
         "profile/",
-        login_required(TemplateView.as_view(template_name="events/profile.html")),
+        user_profile,
         name="user-profile",
     ),
     path('switch-role/', switch_role, name='switch_role'),
 ]
-
-
 
 attendee_urls = [
     path("", events_home, name='events-home'),

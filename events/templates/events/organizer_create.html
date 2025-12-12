@@ -2,11 +2,22 @@
 
 {% block content %}
 <section class="container-md py-4">
-    <h4 class="mb-4 text-primary text-center fw-bold">{% if object %}Edit Organizer{% else %}Create Organizer{% endif %}</h4>
+    <h4 class="mb-4 text-primary text-center fw-bold">{% if object %}Edit Organizer{% else %}Create Organizer{% endif %}
+    </h4>
 
-<form method="post" action="{% if object %}{% url 'organizer-edit' object.id %}{% else %}{% url 'organizer-create' %}{% endif %}">
+    <form method="post"
+        action="{% if object %}{% url 'organizer-edit' object.id %}{% else %}{% url 'organizer-create' %}{% endif %}">
         {% csrf_token %}
         <div class="row justify-content-center">
+            {% if form.non_field_errors %}
+            <div class="col-lg-8 col-xl-6 mb-3">
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             <div class="col-lg-8 col-xl-6">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body p-4">
@@ -29,9 +40,10 @@
                                 {% endif %}
                                 <div class="form-text text-muted">Company name, association, institution, ...</div>
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label class="form-label fw-medium" for="{{ form.organizer_email.id_for_label }}">Organizer Email</label>
+                                <label class="form-label fw-medium"
+                                    for="{{ form.organizer_email.id_for_label }}">Organizer Email</label>
                                 {{ form.organizer_email }}
                                 {% if form.organizer_email.errors %}
                                 {% for error in form.organizer_email.errors %}
@@ -39,9 +51,10 @@
                                 {% endfor %}
                                 {% endif %}
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label class="form-label fw-medium" for="{{ form.organizer_phone.id_for_label }}">Organizer Phone</label>
+                                <label class="form-label fw-medium"
+                                    for="{{ form.organizer_phone.id_for_label }}">Organizer Phone</label>
                                 {{ form.organizer_phone }}
                                 {% if form.organizer_phone.errors %}
                                 {% for error in form.organizer_phone.errors %}
@@ -49,9 +62,10 @@
                                 {% endfor %}
                                 {% endif %}
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label class="form-label fw-medium" for="{{ form.organizer_address.id_for_label }}">Organizer Address</label>
+                                <label class="form-label fw-medium"
+                                    for="{{ form.organizer_address.id_for_label }}">Organizer Address</label>
                                 {{ form.organizer_address }}
                                 {% if form.organizer_address.errors %}
                                 {% for error in form.organizer_address.errors %}
@@ -59,7 +73,7 @@
                                 {% endfor %}
                                 {% endif %}
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-medium" for="{{ form.organizer_slug.id_for_label }}">Address
                                     short form</label>
@@ -70,18 +84,21 @@
                                 </div>
                                 {% if form.organizer_slug.errors %}
                                 {% for error in form.organizer_slug.errors %}
-                                <div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                <div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle me-1"></i>{{
+                                    error }}</div>
                                 {% endfor %}
                                 {% endif %}
                                 <div class="form-text text-muted">This will be the URL your events can be found at. We
                                     will also use this as an abbreviation of your account in some other places.</div>
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label class="form-label fw-medium" for="{{ form.is_active.id_for_label }}">Is Active</label>
+                                <label class="form-label fw-medium" for="{{ form.is_active.id_for_label }}">Is
+                                    Active</label>
                                 <div class="form-check">
                                     {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                                    <label class="form-check-label"
+                                        for="{{ form.is_active.id_for_label }}">Active</label>
                                 </div>
                                 {% if form.is_active.errors %}
                                 {% for error in form.is_active.errors %}

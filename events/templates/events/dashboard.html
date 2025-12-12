@@ -1,4 +1,3 @@
-<!-- templates/dashboard/dashboard.html -->
 {% extends 'events/base.html' %}
 {% load static %}
 
@@ -11,9 +10,6 @@
         <div>
             <h1 class="h3 mb-0">Dashboard</h1>
             <p class="text-muted mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</p>
-        </div>
-        <div class="role-switcher">
-            <!-- Include your role switcher component here -->
         </div>
     </div>
 
@@ -99,7 +95,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Monthly Growth</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area">
+                    <div class="chart-area" style="position: relative; height: 40vh; min-height: 300px;">
                         <canvas id="monthlyGrowthChart"></canvas>
                     </div>
                 </div>
@@ -118,8 +114,8 @@
                             <thead>
                                 <tr>
                                     <th>Event</th>
-                                    <th class="text-center">Registered</th>
-                                    <th class="text-center">Attended</th>
+                                    <th class="text-center">Reg</th>
+                                    <th class="text-center">Att</th>
                                     <th class="text-center">Rate</th>
                                 </tr>
                             </thead>
@@ -170,11 +166,11 @@
                                     <td>{{ event.attendees.count }}</td>
                                     <td>
                                         {% if event.has_finished_event %}
-                                            <span class="badge bg-secondary">Completed</span>
+                                        <span class="badge bg-secondary">Completed</span>
                                         {% elif event.date > now %}
-                                            <span class="badge bg-success">Upcoming</span>
+                                        <span class="badge bg-success">Upcoming</span>
                                         {% else %}
-                                            <span class="badge bg-primary">Active</span>
+                                        <span class="badge bg-primary">Active</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -268,7 +264,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Your Event Activity</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-bar">
+                    <div class="chart-bar" style="position: relative; height: 40vh; min-height: 300px;">
                         <canvas id="attendeeActivityChart"></canvas>
                     </div>
                 </div>
@@ -302,8 +298,11 @@
                                     <td>{{ registration.event.date|date:"M d, Y" }}</td>
                                     <td>{{ registration.event.location }}</td>
                                     <td>
-                                        <span class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
-                                            {% if registration.is_completed %}Attended{% elif registration.is_cancelled %}Cancelled{% else %}Registered{% endif %}
+                                        <span
+                                            class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
+                                            {% if registration.is_completed %}Attended{% elif
+                                            registration.is_cancelled
+                                            %}Cancelled{% else %}Registered{% endif %}
                                         </span>
                                     </td>
                                     <td>{{ registration.created_at|date:"M d, Y" }}</td>
@@ -320,158 +319,94 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block script %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Set up CSRF token for AJAX requests
-    const getCookie = (name) => {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
+document.addEventListener('DOMContentLoaded', () => {
+    // Parse safely
+    const monthlyData = JSON.parse(`{{ monthly_data_json|default:"[]"|escapejs }}`);
+    const monthlyActivity = JSON.parse(`{{ monthly_activity_json|default:"[]"|escapejs }}`);
+    const role = "{{ role }}";
 
-    // Function to fetch chart data
-    async function fetchChartData(chartType) {
-        try {
-            const response = await fetch(`/events/dashboard/chart-data/?chart_type=${chartType}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
-                },
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data.data;
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            return [];
-        }
-    }
+    console.log("Role:", role);
+    console.log("MonthlyData:", monthlyData);
+    console.log("MonthlyActivity:", monthlyActivity);
 
-    // Render Monthly Growth Chart
-    async function renderMonthlyGrowthChart() {
-        const monthlyData = await fetchChartData('monthly_growth');
+    function renderMonthlyGrowthChart() {
         const ctx = document.getElementById('monthlyGrowthChart');
+        if (!ctx || monthlyData.length === 0) return;
 
-        if (ctx && monthlyData.length > 0) {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: monthlyData.map(item => item.month),
-                    datasets: [{
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(i => i.month),
+                datasets: [
+                    {
                         label: 'Events',
-                        data: monthlyData.map(item => item.events),
+                        data: monthlyData.map(i => i.events),
                         borderColor: 'rgba(78, 115, 223, 1)',
                         backgroundColor: 'rgba(78, 115, 223, 0.2)',
                         fill: true,
                         tension: 0.3
-                    }, {
+                    },
+                    {
                         label: 'Attendees',
-                        data: monthlyData.map(item => item.attendees),
+                        data: monthlyData.map(i => i.attendees),
                         borderColor: 'rgba(28, 200, 138, 1)',
                         backgroundColor: 'rgba(28, 200, 138, 0.2)',
                         fill: true,
                         tension: 0.3
-                    }, {
+                    },
+                    {
                         label: 'Revenue',
-                        data: monthlyData.map(item => item.revenue),
+                        data: monthlyData.map(i => i.revenue),
                         borderColor: 'rgba(255, 193, 7, 1)',
                         backgroundColor: 'rgba(255, 193, 7, 0.2)',
                         fill: true,
                         tension: 0.3
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: "rgba(0, 0, 0, .075)",
-                            }
-                        }
                     }
-                }
-            });
-        }
+                ]
+            }
+        });
     }
 
-    // Render Attendee Activity Chart (for attendee role)
-    async function renderAttendeeActivityChart() {
-        const monthlyActivity = await fetchChartData('monthly_activity');
+    function renderAttendeeActivityChart() {
         const ctx = document.getElementById('attendeeActivityChart');
+        if (!ctx || monthlyActivity.length === 0) return;
 
-        if (ctx && monthlyActivity.length > 0) {
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: monthlyActivity.map(item => item.month),
-                    datasets: [{
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: monthlyActivity.map(i => i.month),
+                datasets: [
+                    {
                         label: 'Registrations',
-                        data: monthlyActivity.map(item => item.registrations),
+                        data: monthlyActivity.map(i => i.registrations),
                         backgroundColor: 'rgba(78, 115, 223, 0.8)',
                         borderColor: 'rgba(78, 115, 223, 1)',
                         borderWidth: 1
-                    }, {
+                    },
+                    {
                         label: 'Attended',
-                        data: monthlyActivity.map(item => item.attended),
+                        data: monthlyActivity.map(i => i.attended),
                         backgroundColor: 'rgba(28, 200, 138, 0.8)',
                         borderColor: 'rgba(28, 200, 138, 1)',
                         borderWidth: 1
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: "rgba(0, 0, 0, .075)",
-                            }
-                        }
                     }
-                }
-            });
-        }
+                ]
+            }
+        });
     }
 
-    // Initialize charts based on role
-    document.addEventListener('DOMContentLoaded', () => {
-        const role = "{{ role }}"; // Get role from Django context
-        console.log('Dashboard Role (from Django context):', role); // Debugging: Log the role
-        console.log('CSRF Token:', csrftoken); // Debugging: Log the CSRF token
-
-        if (role === 'organizer') {
-            renderMonthlyGrowthChart();
-        } else if (role === 'attendee') {
-            renderAttendeeActivityChart();
-        }
-    });
+    if (role === 'organizer') {
+        console.log('Organizer charts rendering...');
+        renderMonthlyGrowthChart();
+    } else if (role === 'attendee') {
+        console.log('Attendee charts rendering...');
+        renderAttendeeActivityChart();
+    }
+});
 </script>
+
+
 {% endblock %}

@@ -1,28 +1,60 @@
-import json
-import tempfile
-from datetime import datetime, timedelta
-from decimal import Decimal, InvalidOperation
-
-from django import forms
-from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.db.models import Count, F, Q, Sum
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseForbidden, JsonResponse)
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
+from django.contrib import messages
+from django import forms
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from .models import Event, TicketType, RSVP
 from django.utils import timezone
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.db.models import Sum, Count, Q, F
+from django.core.paginator import Paginator
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
+from datetime import timedelta, datetime
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 from weasyprint import HTML
-
+from decimal import Decimal
 from qr_codes.models import QRCode
 from user_profiles.models import CustomUser, Organizer, Role
 
 from .api.serializers import EventDetailSerializer, EventSerializer
 from .models import RSVP, Event, EventImage, TicketType
+
+
+@login_required
+def user_profile(request):
+    """
+    Display user profile with recent activity
+    """
+    user = request.user
+    context = {'user': user}
+    
+    # Check current role
+    is_organizer = hasattr(user, 'current_role') and user.current_role.name == 'organizer'
+    context['is_organizer'] = is_organizer
+    
+    if is_organizer:
+        # Get recent organized events
+        recent_events = Event.objects.filter(organizer__user=user).order_by('-created_at')[:5]
+        
+        # Calculate stats for these events
+        for event in recent_events:
+            # Get attendance stats
+            stats = RSVP.objects.filter(event=event, is_completed=True).aggregate(
+                registered=Count('id'),
+                revenue=Sum('total_charge')
+            )
+            event.registered_count = stats['registered'] or 0
+            event.revenue = stats['revenue'] or 0
+            
+        context['recent_events'] = recent_events
+    else:
+        # Get recent RSVPs (events attended/registered)
+        recent_rsvps = RSVP.objects.filter(attendee=user).select_related('event').order_by('-created_at')[:5]
+        context['recent_rsvps'] = recent_rsvps
+    
+    return render(request, "events/profile.html", context)
 
 
 class OrganizerForm(forms.ModelForm):
@@ -611,7 +643,7 @@ def dashboard(request):
         
         # Monthly Growth Chart Data
         monthly_data = []
-        for i in range(6):
+        for i in range(12):
             month_start = (today - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_end = (month_start + timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
             
@@ -634,7 +666,7 @@ def dashboard(request):
                 'month': month_start.strftime('%b %Y'),
                 'events': month_events.count(),
                 'attendees': month_attendees,
-                'revenue': month_revenue
+                'revenue': float(month_revenue) # Ensure float for JSON serialization
             })
         
         monthly_data.reverse()
@@ -653,7 +685,7 @@ def dashboard(request):
             'total_attendees': total_attendees,
             'total_revenue': total_revenue,
             'registration_data': registration_data,
-            'monthly_data': monthly_data,
+            'monthly_data_json': json.dumps(monthly_data, cls=DjangoJSONEncoder),
             'event_categories': event_categories,
             'recent_events': organized_events.order_by('-created_at')[:5],
         }
@@ -706,7 +738,7 @@ def dashboard(request):
             'upcoming_events': upcoming_events,
             'cancelled_events': cancelled_events,
             'category_distribution': category_distribution,
-            'monthly_activity': monthly_activity,
+            'monthly_activity_json': json.dumps(monthly_activity, cls=DjangoJSONEncoder),
             'recent_registrations': attendee_rsvps.select_related('event').order_by('-created_at')[:5],
         }
     
@@ -883,7 +915,8 @@ def dashboard_chart_data(request):
             ).order_by('-count') if Event._meta.get_field('metadata').null else []
             return JsonResponse({'data': list(event_categories)})
     
-    elif hasattr(user_profile, 'current_role') and user_profile.current_role.name == 'attendee':
+    else:
+        # Treat as attendee (default)
         attendee_rsvps = RSVP.objects.filter(attendee=request.user)
         
         if chart_type == 'monthly_activity':
