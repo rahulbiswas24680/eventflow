@@ -11,13 +11,17 @@ annotated-types==0.6.0
 anyio==4.2.0
     # via httpx
 asgiref==3.7.2
-    # via django
+    # via
+    #   django
+    #   django-cors-headers
 attrs==23.2.0
     # via
     #   jsonschema
     #   referencing
 billiard==4.2.0
     # via celery
+brotli==1.2.0
+    # via fonttools
 celery[redis]==5.3.6
     # via
     #   -r ./requirements/requirements.in
@@ -28,6 +32,8 @@ certifi==2023.11.17
     #   httpcore
     #   httpx
     #   requests
+cffi==2.0.0
+    # via weasyprint
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
@@ -46,17 +52,22 @@ colorama==0.4.6
     # via
     #   click
     #   pytest
+cssselect2==0.8.0
+    # via weasyprint
 deprecation==2.1.0
     # via postgrest
 django==5.0.1
     # via
     #   -r ./requirements/requirements.in
     #   django-celery-results
+    #   django-cors-headers
     #   django-filter
     #   djangorestframework
     #   djangorestframework-simplejwt
     #   drf-spectacular
 django-celery-results==2.5.1
+    # via -r ./requirements/requirements.in
+django-cors-headers==4.9.0
     # via -r ./requirements/requirements.in
 django-filter==23.5
     # via -r ./requirements/requirements.in
@@ -75,10 +86,16 @@ faker==22.5.1
     # via
     #   -r ./requirements/requirements.in
     #   factory-boy
+fonttools[woff]==4.61.1
+    # via
+    #   fonttools
+    #   weasyprint
 forex-python==1.8
     # via -r ./requirements/requirements.in
 gotrue==2.1.0
     # via supabase
+gunicorn==23.0.0
+    # via -r ./requirements/requirements.in
 h11==0.14.0
     # via httpcore
 httpcore==1.0.2
@@ -112,23 +129,34 @@ markdown==3.5.2
 packaging==23.2
     # via
     #   deprecation
+    #   gunicorn
     #   pytest
 pillow==10.2.0
-    # via -r ./requirements/requirements.in
+    # via
+    #   -r ./requirements/requirements.in
+    #   weasyprint
 pluggy==1.4.0
     # via pytest
 postgrest==0.15.0
     # via supabase
 prompt-toolkit==3.0.43
     # via click-repl
+psycopg2-binary==2.9.9
+    # via -r ./requirements/requirements.in
+pycparser==2.23
+    # via cffi
 pydantic==2.5.3
     # via
     #   gotrue
     #   postgrest
 pydantic-core==2.14.6
     # via pydantic
+pydyf==0.12.1
+    # via weasyprint
 pyjwt==2.8.0
     # via djangorestframework-simplejwt
+pyphen==0.17.2
+    # via weasyprint
 pytest==8.0.0
     # via
     #   pytest-django
@@ -187,6 +215,12 @@ supabase==2.3.4
     # via -r ./requirements/requirements.in
 supafunc==0.3.3
     # via supabase
+tinycss2==1.5.1
+    # via
+    #   cssselect2
+    #   weasyprint
+tinyhtml5==2.0.0
+    # via weasyprint
 typing-extensions==4.9.0
     # via
     #   pydantic
@@ -210,5 +244,14 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.13
     # via prompt-toolkit
+weasyprint==66.0
+    # via -r ./requirements/requirements.in
+webencodings==0.5.1
+    # via
+    #   cssselect2
+    #   tinycss2
+    #   tinyhtml5
 websockets==11.0.3
     # via realtime
+zopfli==0.4.0
+    # via fonttools
