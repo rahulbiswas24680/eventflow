@@ -1,20 +1,25 @@
-from django.shortcuts import render, redirect, get_object_or_404
+import json
+import markdown
+from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
+
+from django import forms
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
-from django import forms
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from .models import Event, TicketType, RSVP
-from django.utils import timezone
-from django.db.models import Sum, Count, Q, F
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
-from datetime import timedelta, datetime
-import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Count, F, Q, Sum
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.text import slugify
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from weasyprint import HTML
-from decimal import Decimal
+
 from qr_codes.models import QRCode
 from user_profiles.models import CustomUser, Organizer, Role
 
@@ -58,17 +63,17 @@ def user_profile(request):
 
 
 class OrganizerForm(forms.ModelForm):
-    # privacy = forms.BooleanField(
-    #     label='I have read and agree with the privacy policy',
-    #     required=True,
-    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    # )
-    # terms = forms.BooleanField(
-    #     label='I have read and agree with the terms of service',
-    #     required=True,
-    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    # )
-
+    # Remove privacy and terms fields since they're not in the model
+    # These are not needed for the organizer model itself
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make organizer_name required
+        self.fields['organizer_name'].required = True
+        # Add custom validation for empty fields
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs['required'] = 'required'
+    
     class Meta:
         model = Organizer
         fields = [
@@ -99,21 +104,70 @@ class OrganizerForm(forms.ModelForm):
             }),
             'organizer_slug': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Address short form',
+                'placeholder': 'e.g., my-company-name',
                 'title': 'This will be the URL your events can be found at. We will also use this as an abbreviation of your account in some other places.'
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             })
         }
+    
+    def clean_organizer_slug(self):
+        """Clean and validate the organizer slug"""
+        slug = self.cleaned_data.get('organizer_slug')
+        if slug:
+            # Clean the slug
+            slug = slugify(slug)
+            
+            # Check if slug already exists (excluding current instance in edit mode)
+            queryset = Organizer.objects.filter(organizer_slug=slug)
+            if self.instance and self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError(
+                    "This slug is already in use. Please choose a different one."
+                )
+        return slug
+    
+    def clean_organizer_email(self):
+        """Clean and validate email"""
+        email = self.cleaned_data.get('organizer_email')
+        if email:
+            # Check if email already exists (excluding current instance in edit mode)
+            queryset = Organizer.objects.filter(organizer_email=email)
+            if self.instance and self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError(
+                    "This email is already associated with another organizer."
+                )
+        return email
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if not cleaned_data.get('privacy') or not cleaned_data.get('terms'):
-            raise forms.ValidationError(
-                "You must agree to both the privacy policy and terms of service"
-            )
-        return cleaned_data
+    def clean_organizer_name(self):
+        """Clean and validate organizer name"""
+        name = self.cleaned_data.get('organizer_name')
+        if not name or not name.strip():
+            raise forms.ValidationError("Organizer name is required.")
+        return name.strip()
+    
+    def save(self, commit=True, user=None):
+        """Override save to handle created_by and modified_by"""
+        instance = super().save(commit=False)
+        
+        if not instance.pk:  # New instance
+            if user:
+                instance.created_by = user
+                instance.modified_by = user
+        else:  # Existing instance
+            if user:
+                instance.modified_by = user
+        
+        if commit:
+            instance.save()
+        
+        return instance
 
 
 class OrganizerUpdateView(LoginRequiredMixin, UpdateView):
@@ -228,10 +282,14 @@ def create_event(request):
                 return redirect('create-event')
             
             # Create event
+            # Process markdown description
+            description_html = mark_safe(markdown.markdown(description, extensions=['extra']))
+            
             event = Event.objects.create(
                 organizer=organizer,
                 name=name,
                 description=description,
+                description_html=description_html,
                 date=event_date,
                 location=location,
                 is_virtual=is_virtual,
@@ -382,17 +440,20 @@ def update_event(request, pk):
     
     # Get event and verify ownership
     event = get_object_or_404(Event, pk=pk, organizer__user=request.user)
+    print('???', request.POST, request.FILES)
     
-    if request.method == "PUT":
+    # Handle both PUT requests and POST requests with _method=PUT
+    if request.method == "POST":
         try:
             # Get basic event data
-            organizer_id = request.PUT.get('organizer')
-            name = request.PUT.get('name')
-            description = request.PUT.get('description', '')
-            date_str = request.PUT.get('date')
-            location = request.PUT.get('location', '')
-            is_virtual = request.PUT.get('is_virtual') == 'on'
-            is_published = request.PUT.get('is_published') == 'on'
+            request_data = request.PUT if request.method == "PUT" else request.POST
+            organizer_id = request_data.get('organizer')
+            name = request_data.get('name')
+            description = request_data.get('description', '')
+            date_str = request_data.get('date')
+            location = request_data.get('location', '')
+            is_virtual = request_data.get('is_virtual') == 'on'
+            is_published = request_data.get('is_published') == 'on'
             
             # Validate required fields
             if not organizer_id or not name or not date_str:
@@ -413,7 +474,11 @@ def update_event(request, pk):
             # Update event
             event.organizer = organizer
             event.name = name
+            
+            # Process markdown description
             event.description = description
+            event.description_html = mark_safe(markdown.markdown(description, extensions=['extra']))
+            
             event.date = event_date
             event.location = location
             event.is_virtual = is_virtual
@@ -425,56 +490,72 @@ def update_event(request, pk):
             for image in new_images:
                 EventImage.objects.create(event=event, image=image)
             
-            # Handle tickets - find all ticket indices
+# Handle tickets - find all ticket indices
             ticket_indices = set()
-            for key in request.PUT.keys():
+            for key in request_data.keys():
                 if key.startswith('ticket_name_'):
                     index = key.split('_')[-1]
                     ticket_indices.add(index)
             
-            # Get existing tickets
-            existing_tickets = list(TicketType.objects.filter(event=event))
+            # Get existing tickets and map by ID for better update logic
+            existing_tickets = {ticket.id: ticket for ticket in TicketType.objects.filter(event=event)}
+            existing_ticket_ids = list(existing_tickets.keys())
             
             # Update or create tickets
             tickets_processed = 0
-            for i, index in enumerate(sorted(ticket_indices, key=lambda x: int(x) if x.isdigit() else 0)):
-                ticket_name = request.PUT.get(f'ticket_name_{index}')
-                ticket_price = request.PUT.get(f'ticket_price_{index}')
-                ticket_quantity = request.PUT.get(f'ticket_quantity_{index}')
-                discount_code = request.PUT.get(f'ticket_discount_code_{index}', '')
+            updated_ticket_ids = set()
+            
+            for index in sorted(ticket_indices, key=lambda x: int(x) if x.isdigit() else 0):
+                ticket_name = request_data.get(f'ticket_name_{index}')
+                ticket_price = request_data.get(f'ticket_price_{index}')
+                ticket_quantity = request_data.get(f'ticket_quantity_{index}')
+                discount_code = request_data.get(f'ticket_discount_code_{index}', '')
                 ticket_image = request.FILES.get(f'ticket_image_{index}')
                 
                 # Validate ticket data
                 if ticket_name and ticket_price and ticket_quantity:
                     try:
-                        # Update existing ticket or create new one
-                        if i < len(existing_tickets):
-                            ticket = existing_tickets[i]
-                            ticket.name = ticket_name
-                            ticket.price = float(ticket_price)
-                            ticket.quantity_available = int(ticket_quantity)
-                            ticket.discount_code = discount_code if discount_code else None
-                            if ticket_image:
-                                ticket.image = ticket_image
-                            ticket.save()
-                        else:
+                        # Parse values
+                        price_val = float(ticket_price)
+                        quantity_val = int(ticket_quantity)
+                        
+                        # Try to find an existing ticket to update
+                        ticket_updated = False
+                        for ticket_id, ticket in existing_tickets.items():
+                            if ticket.name == ticket_name:  # Match by name (could be improved with ticket_id from form)
+                                # Update existing ticket
+                                ticket.name = ticket_name
+                                ticket.price = price_val
+                                ticket.quantity_available = quantity_val
+                                ticket.discount_code = discount_code if discount_code else None
+                                if ticket_image:
+                                    ticket.image = ticket_image
+                                ticket.save()
+                                updated_ticket_ids.add(ticket_id)
+                                tickets_processed += 1
+                                ticket_updated = True
+                                break
+                        
+                        if not ticket_updated:
                             # Create new ticket
-                            ticket = TicketType.objects.create(
+                            new_ticket = TicketType.objects.create(
                                 event=event,
                                 name=ticket_name,
-                                price=float(ticket_price),
-                                quantity_available=int(ticket_quantity),
+                                price=price_val,
+                                quantity_available=quantity_val,
                                 discount_code=discount_code if discount_code else None,
                                 image=ticket_image if ticket_image else None
                             )
-                        tickets_processed += 1
+                            updated_ticket_ids.add(new_ticket.id)
+                            tickets_processed += 1
+                    
                     except (ValueError, Exception) as e:
                         print(f"Error processing ticket {index}: {e}")
             
-            # Delete removed tickets (if there are more existing tickets than submitted)
-            if len(existing_tickets) > tickets_processed:
-                for ticket in existing_tickets[tickets_processed:]:
-                    ticket.delete()
+            # Delete tickets that were not updated (removed from form)
+            for ticket_id in existing_ticket_ids:
+                if ticket_id not in updated_ticket_ids:
+                    existing_tickets[ticket_id].delete()
             
             messages.success(request, f"Event '{name}' updated successfully!")
             return redirect('our-events')
@@ -796,7 +877,7 @@ def our_events(request):
     if event_ids:
         stats = RSVP.objects.filter(
             event_id__in=event_ids,
-            is_completed=True
+            is_cancelled=False
         ).values('event_id').annotate(
             registered_count=Count('id'),
             attended_count=Count('id', filter=Q(is_attended=True))

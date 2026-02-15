@@ -18,11 +18,11 @@ urlpatterns = [
         user_profile,
         name="user-profile",
     ),
-    path('switch-role/', switch_role, name='switch_role'),
+    path('switch-role/', switch_role, name='switch-role'),
 ]
 
 attendee_urls = [
-    path("", events_home, name='events-home'),
+    path("events/", events_home, name='events-home'),
     path("event/<int:event_id>", event_detail, name='event-detail'),
     path(
         "my-rsvp/",

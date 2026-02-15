@@ -15,17 +15,17 @@
         <div class="card-body">
           <div id="cart-boxes" class="mb-4"></div>
           <div class="border-top pt-3 mt-3">
-            <div class="d-flex justify-content-between mb-2">
+            <!-- <div class="d-flex justify-content-between mb-2">
               <span>Subtotal</span>
               <span id="cart-subtotal" class="fw-bold">$0.00</span>
             </div>
             <div class="d-flex justify-content-between mb-3">
               <span>Tax (18%)</span>
               <span id="cart-tax">$0.00</span>
-            </div>
+            </div> -->
             <div class="d-flex justify-content-between mb-4 fw-bold fs-5">
               <span>Total</span>
-              <span id="cart-total">$0.00</span>
+              <span id="cart-total">₹0.00</span>
             </div>
           </div>
         </div>
@@ -40,7 +40,7 @@
           <form class="row g-3">
             <div class="col-md-6">
               <label for="inputEmail4" class="form-label">Email</label>
-              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@gmail.com" required>
+              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@example.com" required>
             </div>
             <div class="col-md-6">
               <label for="inputPhone" class="form-label">Phone</label>
@@ -48,12 +48,12 @@
                 maxlength="10" required>
             </div>
             <div class="col-12">
-              <label for="inputAddress" class="form-label">Address</label>
-              <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" required>
+              <label for="inputAddress" class="form-label">Address 1</label>
+              <textarea class="form-control" id="inputAddress" placeholder="1234 Main St" required></textarea>
             </div>
             <div class="col-12">
               <label for="inputAddress2" class="form-label">Address 2</label>
-              <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
+              <textarea class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor"></textarea>
             </div>
             <div class="col-md-4">
               <label for="inputState" class="form-label">State</label>
@@ -74,14 +74,14 @@
               <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6" required>
               <span id="pincode-result"></span>
             </div>
-            <div class="col-12">
+            <!-- <div class="col-12">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="gridCheck">
                 <label class="form-check-label" for="gridCheck">
                   Check me out
                 </label>
               </div>
-            </div>
+            </div> -->
             <div
               class="col-12 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3 py-3 border-top">
               <div class="d-flex align-items-center">
@@ -124,13 +124,14 @@
 
           // Calculate subtotal, tax (18%), and total
           const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const tax = parseFloat((subtotal * 0.18).toFixed(2));
+          // const tax = parseFloat((subtotal * 0.18).toFixed(2));
+          const tax = parseFloat(0);
           const total = parseFloat((subtotal + tax).toFixed(2));
 
           // Update cart summary UI
-          $('#cart-subtotal').text(`$${subtotal.toFixed(2)}`);
-          $('#cart-tax').text(`$${tax.toFixed(2)}`);
-          $('#cart-total').text(`$${total.toFixed(2)}`);
+          // $('#cart-subtotal').text(`₹${subtotal.toFixed(2)}`);
+          // $('#cart-tax').text(`₹${tax.toFixed(2)}`);
+          $('#cart-total').text(`₹${total.toFixed(2)}`);
 
           // Render cart items
           const $cartItems = $('#cart-boxes');
@@ -147,11 +148,11 @@
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <h6 class="mb-1 fw-semibold">${item.name}</h6>
-                  <p class="text-muted small mb-1">$${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
+                  <p class="text-muted small mb-1">₹${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
                   <small class="text-muted">Event: ${data.event.name}</small>
                 </div>
                 <div class="text-end">
-                  <div class="fw-bold text-primary mb-2">$${(price * item.quantity).toFixed(2)}</div>
+                  <div class="fw-bold text-primary mb-2">₹${(price * item.quantity).toFixed(2)}</div>
                 </div>
               </div>
             </div>`;
@@ -178,8 +179,8 @@
           console.log('getting error');
           // fallback if cart empty or API error
           $('#cart-count').text(0);
-          $('#cart-subtotal').text('$0.00');
-          $('#cart-tax').text('$0.00');
+          // $('#cart-subtotal').text('$0.00');
+          // $('#cart-tax').text('$0.00');
           $('#cart-total').text('$0.00');
           $('#checkout-btn').addClass('disabled').attr('href', '#');
           $('#cart-boxes').empty();

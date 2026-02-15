@@ -5,6 +5,7 @@ from .views import (
     UserRSVPHistoryDetailView,
 
     OrganizersListCreateView,
+    OrganizerDetailView,
 )
 
 urlpatterns = [
@@ -30,4 +31,5 @@ urlpatterns = [
 
 
     path("organizers/", OrganizersListCreateView.as_view(), name="organizers-list"),
+    path("organizers/<int:pk>/", OrganizerDetailView.as_view(), name="organizer-detail"),
 ]

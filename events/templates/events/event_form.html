@@ -1,207 +1,511 @@
 {% extends 'events/base.html' %}
+{% load static %}
 
 {% block content %}
 <style>
     .card {
         border: none;
-        border-radius: 10px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
     }
 
     .card-header {
-        border-radius: 10px 10px 0 0 !important;
+        border-radius: 15px 15px 0 0 !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 2.5rem;
     }
 
-    .image-preview {
-        height: 150px;
-        object-fit: cover;
-        border-radius: 8px;
-        transition: transform 0.3s;
+    .card-body {
+        padding: 2.5rem;
     }
 
-    .image-preview:hover {
-        transform: scale(1.05);
+    .section-title {
+        color: #4dabf7;
+        font-weight: 600;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
     }
 
-    .image-card {
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+.input-group {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .input-group > :not(:first-child):not(.CodeMirror) {
+        margin-left: 0;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border: none;
+        color: #667eea;
+        font-size: 1.1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
         transition: all 0.3s;
     }
 
-    .image-card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-upload {
-        background: linear-gradient(45deg, #6c757d, #495057);
-        border: none;
-        padding: 10px 20px;
-        font-weight: 600;
-    }
-
-    .btn-upload:hover {
-        background: linear-gradient(45deg, #5a6268, #3d4348);
-    }
-
-    .progress-bar {
-        background-color: #0d6efd;
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        transform: translateY(-1px);
     }
 
     .custom-file-upload {
-        border: 2px dashed #dee2e6;
-        border-radius: 8px;
-        padding: 20px;
+        border: 3px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 3rem 2rem;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s;
+        background: #f8f9fa;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .custom-file-upload:hover {
-        border-color: #0d6efd;
-        background-color: #f8f9fa;
+        border-color: #667eea;
+        background-color: #f0f4ff;
+        transform: translateY(-2px);
     }
 
     .custom-file-upload i {
-        font-size: 3rem;
-        color: #6c757d;
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .custom-file-upload p {
+        margin-bottom: 0.25rem;
+    }
+
+    .thumbnail {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+
+    .thumbnail:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     .btn-delete {
         position: absolute;
         top: 5px;
         right: 5px;
-        opacity: 0.8;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.9;
+        transition: all 0.2s;
     }
 
     .btn-delete:hover {
         opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .ticket-form {
+        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .ticket-form:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+    }
+
+    .remove-ticket-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-outline-secondary {
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
     }
 
     .preview-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 15px;
+        gap: 15px;
+        margin-top: 20px;
     }
 
-    .thumbnail {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 5px;
-        border: 1px solid #ddd;
+    .image-preview-item {
+        position: relative;
+        width: 120px;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #17a2b8, #20c997);
+        color: white;
+        border-radius: 20px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border-radius: 20px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .existing-images {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .upload-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .price-input {
+        position: relative;
+    }
+
+    .price-input .input-group-text {
+        background: linear-gradient(135deg, #20c997, #28a745);
+        color: white;
+        font-weight: 600;
+    }
+
+    .switch-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+.stats-badge {
+        background: linear-gradient(135deg, #4dabf7, #339af0);
+        color: white;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Character counter styling */
+    .char-counter {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .char-counter.warning {
+        color: #ffc107;
+    }
+
+    .char-counter.danger {
+        color: #dc3545;
     }
 </style>
+
 <div class="container-md py-5">
     <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
+        <div class="col-md-10 col-lg-9">
             <div class="card">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h2 class="mb-0"><i class="bi bi-calendar-event me-2"></i>{% if event %}{{ title }}{% else %}Create Event{% endif %}</h2>
+                <!-- Header -->
+                <div class="card-header text-white text-center">
+                    <h1 class="display-6 fw-bold mb-2">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        {% if event %}{{ title }}{% else %}Create New Event{% endif %}
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        {% if event %}
+                        Update your event details and tickets
+                        {% else %}
+                        Fill in the details below to create an amazing event
+                        {% endif %}
+                    </p>
                 </div>
+
                 <div class="card-body p-5">
-                    <!-- FIXED: Added proper action attribute -->
+                    <!-- Event Stats (for editing) -->
+                    {% if event %}
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <span class="stats-badge">
+                            <i class="bi bi-ticket me-1"></i> {{ tickets|length }} Ticket{{ tickets|length|pluralize:"s" }}
+                        </span>
+                        <span class="stats-badge">
+                            <i class="bi bi-image me-1"></i> {{ images|length }} Image{{ images|length|pluralize:"s" }}
+                        </span>
+                        <span class="stats-badge">
+                            <i class="bi bi-eye me-1"></i>
+                            {% if event.is_published %}Published{% else %}Draft{% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Main Form -->
                     <form method="POST" enctype="multipart/form-data" id="eventForm"
-                          action="{% if event %}{% url 'update-event' event.id %}{% else %}{% url 'create-event' %}{% endif %}">
+                          action="{% if event %}{% url 'update-event' event.id %}{% else %}{% url 'create-event' %}{% endif %}"
+                          class="needs-validation" novalidate>
+
                         {% csrf_token %}
 
-                        <div class="mb-4">
-                            <label for="organizer" class="form-label required-field">Organizer</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-building"></i></span>
-                                <select class="form-control" id="organizer" name="organizer" required>
-                                    <option value="">No Organizer Selected</option>
-                                    {% for organizer in organizers %}
-                                        <option value="{{ organizer.id }}"
-                                            {% if event and event.organizer.id == organizer.id %}selected{% endif %}>
-                                            {{ organizer.organizer_name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
+                        <!-- Organizer Section -->
+                        <div class="mb-5">
+                            <h5 class="section-title">
+                                <i class="bi bi-building me-2"></i>Event Organizer
+                            </h5>
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <label for="organizer" class="form-label required-field">Select Organizer</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-primary text-white">
+                                            <i class="bi bi-building"></i>
+                                        </span>
+                                        <select class="form-control" id="organizer" name="organizer" required>
+                                            <option value="">-- Select an Organizer --</option>
+                                            {% for organizer in organizers %}
+                                                <option value="{{ organizer.id }}"
+                                                    {% if event and event.organizer.id == organizer.id %}selected{% endif %}>
+                                                    {{ organizer.organizer_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Select the organization that will host this event
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 d-flex align-items-end">
+                                    <a href="{% url 'organizer-create' %}" 
+                                       class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-plus-circle me-2"></i> New Organizer
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="name" class="form-label required-field">Event Name</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
-                                <input type="text" class="form-control" id="name" name="name" required
-                                    placeholder="Enter event name" value="{{ event.name|default:'' }}">
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="description" class="form-label">Description</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-text-paragraph"></i></span>
-                                <textarea class="form-control" id="description" name="description" rows="4"
-                                    placeholder="Describe your event">{{ event.description|default:'' }}</textarea>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="date" class="form-label required-field">Date & Time</label>
+                        <!-- Event Details Section -->
+                        <div class="mb-5">
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle me-2"></i>Event Details
+                            </h5>
+                            
+                            <!-- Event Name -->
+                            <div class="mb-4">
+                                <label for="name" class="form-label required-field">Event Name</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-                                    <input type="datetime-local" class="form-control" id="date" name="date" required
-                                        {% if event and event.date %}value="{{ event.date|date:'Y-m-d\TH:i' }}"{% endif %}>
+                                    <span class="input-group-text">
+                                        <i class="bi bi-pencil text-primary"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="name" name="name" required
+                                        placeholder="Enter a catchy event name that attracts attendees"
+                                        value="{{ event.name|default:'' }}">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="location" class="form-label">Location</label>
+
+<!-- Description -->
+                            <div class="mb-4">
+                                <label for="description" class="form-label">Event Description</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                    <input type="text" class="form-control" id="location" name="location"
-                                        placeholder="Event location" value="{{ event.location|default:'' }}">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-text-paragraph text-primary"></i>
+                                    </span>
+                                    <textarea class="form-control" id="description" name="description" rows="10"
+                                        placeholder="Describe your event in detail. What can attendees expect?">{{ event.description|default:'' }}</textarea>
+                                </div>
+                                <div class="form-text d-flex justify-content-between">
+                                    <span><i class="bi bi-markdown me-1"></i> Supports Markdown formatting</span>
+                                    <span id="char-count">0</span>/1000 characters
+                                </div>
+                            </div>
+
+                            <!-- Date, Time & Location -->
+                            <div class="row mb-4">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="date" class="form-label required-field">
+                                        <i class="bi bi-calendar-date me-1"></i>Date & Time
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-clock text-primary"></i>
+                                        </span>
+                                        <input type="datetime-local" class="form-control" id="date" name="date" required
+                                            {% if event and event.date %}value="{{ event.date|date:'Y-m-d\TH:i' }}"{% endif %}>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 mb-3">
+                                    <label for="location" class="form-label">
+                                        <i class="bi bi-geo-alt me-1"></i>Location
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-geo-alt-fill text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="location" name="location"
+                                            placeholder="Enter event venue or virtual meeting link"
+                                            value="{{ event.location|default:'' }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Event Settings -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="switch-container">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="is_virtual" name="is_virtual"
+                                                {% if event and event.is_virtual %}checked{% endif %}>
+                                            <label class="form-check-label fw-semibold" for="is_virtual">
+                                                <i class="bi bi-camera-video me-2"></i> Virtual Event
+                                            </label>
+                                        </div>
+                                        <div class="form-text mt-2">
+                                            Enable for online events. Location field will be used for meeting links.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="switch-container">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
+                                                {% if event and event.is_published %}checked{% endif %}>
+                                            <label class="form-check-label fw-semibold" for="is_published">
+                                                <i class="bi bi-megaphone me-2"></i> Publish Event
+                                            </label>
+                                        </div>
+                                        <div class="form-text mt-2">
+                                            Make your event visible to attendees. Keep unchecked for drafts.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_virtual" name="is_virtual"
-                                        {% if event and event.is_virtual %}checked{% endif %}>
-                                    <label class="form-check-label" for="is_virtual">
-                                        <i class="bi bi-camera-video me-1"></i> Virtual Event
-                                    </label>
+                        <!-- Images Section -->
+                        <div class="mb-5">
+                            <h5 class="section-title">
+                                <i class="bi bi-images me-2"></i>Event Images
+                            </h5>
+                            
+                            <!-- Upload Area -->
+                            <div class="mb-4">
+                                <div class="custom-file-upload" id="dropZone">
+                                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                                    <p class="fw-semibold mt-3">Drag & Drop Images Here</p>
+                                    <p class="text-muted small mb-2">or click to browse your files</p>
+                                    <p class="text-muted small">Supports JPG, PNG, GIF • Max 5MB per image</p>
+                                    <input type="file" id="images" name="images" multiple accept="image/*" style="display: none;">
                                 </div>
-                                <div class="form-text">Check if this is an online event</div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
-                                    {% if event and event.is_published %}checked{% endif %}>
-                                    <label class="form-check-label" for="is_published">
-                                        <i class="bi bi-megaphone me-1"></i> Publish Event
-                                    </label>
+                                
+                                <!-- Upload Info -->
+                                <div class="upload-info">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <i class="bi bi-check-circle text-success me-2"></i>
+                                            <span class="fw-medium">High Quality</span>
+                                            <p class="mb-0 small">Use clear, bright images</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <i class="bi bi-check-circle text-success me-2"></i>
+                                            <span class="fw-medium">Optimal Size</span>
+                                            <p class="mb-0 small">Recommended: 1200x800 pixels</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-text">Make event visible to others</div>
-                            </div>
-                        </div>
-
-                        <!-- Image Upload Section -->
-                        <div class="mb-4">
-                            <label for="images" class="form-label">Event Images</label>
-                            <div class="dropzone custom-file-upload mb-3" id="dropZone">
-                                <i class="bi bi-cloud-arrow-up"></i>
-                                <p class="mt-2 mb-1">Drag & drop images here or click to browse</p>
-                                <p class="text-muted small">Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
-                                <input type="file" id="images" name="images" multiple accept="image/*" style="display: none;">
                             </div>
 
                             <!-- Image Preview Area -->
                             <div class="preview-container" id="imagePreview"></div>
 
+                            <!-- Existing Images -->
                             {% if images %}
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Existing Images</label>
-                                <div class="d-flex flex-wrap gap-2">
+                            <div class="existing-images">
+                                <h6 class="fw-semibold mb-3 text-primary">
+                                    <i class="bi bi-folder me-1"></i> Existing Images
+                                </h6>
+                                <div class="d-flex flex-wrap gap-3">
                                     {% for img in images %}
-                                        <div class="position-relative" style="width:120px;">
-                                            <img src="{{ img.image.url }}" alt="Event Image" class="img-thumbnail" style="height:100px; width:100%; object-fit:cover;">
-                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                        <div class="image-preview-item">
+                                            <img src="{{ img.image.url }}" alt="Event Image" class="thumbnail">
+                                            <button type="button" class="btn btn-danger btn-sm btn-delete"
                                                     onclick="deleteImage('{{ event.id }}', '{{ img.id }}', this)">
                                                 <i class="bi bi-x"></i>
                                             </button>
@@ -212,128 +516,158 @@
                             {% endif %}
                         </div>
 
-                        <!-- Ticket Creation Section -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="bi bi-ticket me-2"></i>Tickets</h5>
-                            </div>
-                            <div class="card-body">
+                        <!-- Tickets Section -->
+                        <div class="mb-5">
+                            <h5 class="section-title">
+                                <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                            </h5>
+                            
+                            <!-- Ticket Forms -->
+                            <div id="tickets-container">
                                 {% if event %}
-                                    <div id="tickets-container">
-                                        {% for tkt in tickets %}
-                                        <div class="ticket-form mb-4 p-3 border rounded" data-ticket-index="{{ forloop.counter }}">
-                                            <h6 class="mb-3">Ticket #{{ forloop.counter }}</h6>
-                                            <div class="mb-3">
+                                    {% for tkt in tickets %}
+                                    <div class="ticket-form" data-ticket-index="{{ forloop.counter }}">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0 fw-semibold text-primary">
+                                                <i class="bi bi-ticket me-1"></i> Ticket #{{ forloop.counter }}
+                                            </h6>
+                                            <button type="button" class="btn btn-danger btn-sm remove-ticket-btn"
+                                                    onclick="this.closest('.ticket-form').remove()">
+                                                <i class="bi bi-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Ticket Content -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Ticket Name</label>
                                                 <input type="text" class="form-control" name="ticket_name_{{ forloop.counter }}" required
-                                                    placeholder="Enter ticket name (e.g., General Admission, VIP)"
+                                                    placeholder="e.g., General Admission, VIP, Early Bird"
                                                     value="{{ tkt.name|default:'' }}">
                                             </div>
-
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label class="form-label required-field">Price</label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text">₹</span>
-                                                        <input type="number" class="form-control" name="ticket_price_{{ forloop.counter }}"
-                                                            required min="0" step="0.01" placeholder="0.00"
-                                                            value="{{ tkt.price|default:'' }}">
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-md-6 mb-3">
-                                                    <label class="form-label required-field">Quantity Available</label>
-                                                    <input type="number" class="form-control" name="ticket_quantity_{{ forloop.counter }}"
-                                                        required min="1" placeholder="Enter number of tickets available"
-                                                        value="{{ tkt.quantity_available|default:'' }}">
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-3">
-                                                <label class="form-label">Discount Code (Optional)</label>
-                                                <input type="text" class="form-control" name="ticket_discount_code_{{ forloop.counter }}"
-                                                    placeholder="Enter discount code if applicable"
-                                                    value="{{ tkt.discount_code|default:'' }}">
-                                            </div>
-
-                                            <div class="mb-3 d-flex justify-content-between">
-                                                <div>
-                                                    <label class="form-label">Ticket Image (Optional)</label>
-                                                    <input type="file" class="form-control" name="ticket_image_{{ forloop.counter }}" accept="image/*">
-                                                </div>
-                                                <div class="position-relative" style="width:120px;">
-                                                    {% if tkt.image %}
-                                                        <img src="{{ tkt.image.url }}" alt="Ticket Image" class="img-thumbnail" style="height:100px; width:100%; object-fit:cover;">
-                                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
-                                                                onclick="deleteTicketImage('{{ tkt.event.id }}', '{{ tkt.id }}', this)">
-                                                            <i class="bi bi-x"></i>
-                                                        </button>
-                                                    {% else %}
-                                                        <div class="d-flex justify-content-center align-items-center h-100">
-                                                            <p class="m-0 text-muted">No Image</p>
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label required-field">Quantity Available</label>
+                                                <input type="number" class="form-control" name="ticket_quantity_{{ forloop.counter }}"
+                                                    required min="1" placeholder="Total tickets available"
+                                                    value="{{ tkt.quantity_available|default:'' }}">
                                             </div>
                                         </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                <div class="form-text mb-3">At least one ticket is required</div>
-                                <div id="tickets-container">
-                                    <!-- Ticket 1 (required) -->
-                                    <div class="ticket-form mb-4 p-3 border rounded" data-ticket-index="1">
-                                        <h6 class="mb-3">Ticket #1</h6>
-                                        <div class="mb-3">
-                                            <label class="form-label required-field">Ticket Name</label>
-                                            <input type="text" class="form-control" name="ticket_name_1" required
-                                                placeholder="Enter ticket name (e.g., General Admission, VIP)">
-                                        </div>
-
+                                        
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Price</label>
-                                                <div class="input-group">
+                                                <div class="input-group price-input">
                                                     <span class="input-group-text">₹</span>
-                                                    <input type="number" class="form-control" name="ticket_price_1"
-                                                        required min="0" step="0.01" placeholder="0.00">
+                                                    <input type="number" class="form-control" name="ticket_price_{{ forloop.counter }}"
+                                                        required min="0" step="0.01" placeholder="0.00"
+                                                        value="{{ tkt.price|default:'' }}">
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label required-field">Quantity Available</label>
-                                                <input type="number" class="form-control" name="ticket_quantity_1"
-                                                    required min="1" placeholder="Enter number of tickets available">
+                                                <label class="form-label">Discount Code (Optional)</label>
+                                                <input type="text" class="form-control" name="ticket_discount_code_{{ forloop.counter }}"
+                                                    placeholder="Enter discount code for special offers"
+                                                    value="{{ tkt.discount_code|default:'' }}">
                                             </div>
                                         </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label">Discount Code (Optional)</label>
-                                            <input type="text" class="form-control" name="ticket_discount_code_1"
-                                                placeholder="Enter discount code if applicable">
-                                        </div>
-
+                                        
+                                        <!-- Ticket Image -->
                                         <div class="mb-3">
                                             <label class="form-label">Ticket Image (Optional)</label>
-                                            <input type="file" class="form-control" name="ticket_image_1" accept="image/*">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <input type="file" class="form-control" name="ticket_image_{{ forloop.counter }}" accept="image/*">
+                                                </div>
+                                                {% if tkt.image %}
+                                                <div class="col-md-6">
+                                                    <div class="image-preview-item">
+                                                        <img src="{{ tkt.image.url }}" alt="Ticket Image" class="thumbnail">
+                                                        <button type="button" class="btn btn-danger btn-sm btn-delete"
+                                                                onclick="deleteTicketImage('{{ tkt.event.id }}', '{{ tkt.id }}', this)">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
                                         </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <!-- Default Ticket (New Event) -->
+                                <div class="ticket-form" data-ticket-index="1">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0 fw-semibold text-primary">
+                                            <i class="bi bi-ticket me-1"></i> Ticket #1
+                                        </h6>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label required-field">Ticket Name</label>
+                                            <input type="text" class="form-control" name="ticket_name_1" required
+                                                placeholder="e.g., General Admission, VIP, Early Bird">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label required-field">Quantity Available</label>
+                                            <input type="number" class="form-control" name="ticket_quantity_1"
+                                                required min="1" placeholder="Total tickets available">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label required-field">Price</label>
+                                            <div class="input-group price-input">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" class="form-control" name="ticket_price_1"
+                                                    required min="0" step="0.01" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Discount Code (Optional)</label>
+                                            <input type="text" class="form-control" name="ticket_discount_code_1"
+                                                placeholder="Enter discount code for special offers">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Ticket Image (Optional)</label>
+                                        <input type="file" class="form-control" name="ticket_image_1" accept="image/*">
                                     </div>
                                 </div>
                                 {% endif %}
-                                <button type="button" class="btn btn-outline-success" id="add-ticket-btn">
-                                    <i class="bi bi-plus-circle me-1"></i>Add Another Ticket
+                            </div>
+                            
+                            <!-- Add Ticket Button -->
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-outline-primary" id="add-ticket-btn">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Another Ticket Type
                                 </button>
+                                <div class="form-text mt-2">
+                                    You can add multiple ticket types (General, VIP, Student, etc.)
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <button type="button" class="btn btn-outline-secondary me-md-2" id="resetBtn" onclick="document.getElementById('eventForm').reset();">
-                                <i class="bi bi-x-circle me-1"></i>Reset
-                            </button>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="bi bi-plus-circle me-1"></i>
-                                {% if event %}Update Event{% else %}Create Event{% endif %}
-                            </button>
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Form
+                                </button>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <a href="{% if event %}{% url 'event-detail' event.id %}{% else %}{% url 'events-home' %}{% endif %}"
+                                   class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    {% if event %}Update Event{% else %}Create Event{% endif %}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -345,53 +679,67 @@
 
 {% block script %}
 <script>
-    // Drag and drop functionality for images
+    // Character counter for description
+    const description = document.getElementById('description');
+    const charCount = document.getElementById('char-count');
+    
+    if (description && charCount) {
+        description.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+        // Initialize count
+        charCount.textContent = description.value.length;
+    }
+    
+    // Drag and drop functionality
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('images');
     const imagePreview = document.getElementById('imagePreview');
 
-    // Click to select files
     dropZone.addEventListener('click', () => fileInput.click());
 
-    // Drag and drop events
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#0d6efd';
-        dropZone.style.backgroundColor = '#e7f3ff';
+        dropZone.style.borderColor = '#667eea';
+        dropZone.style.backgroundColor = '#f0f4ff';
+        dropZone.style.transform = 'translateY(-2px)';
     });
 
     dropZone.addEventListener('dragleave', () => {
         dropZone.style.borderColor = '#dee2e6';
-        dropZone.style.backgroundColor = '';
+        dropZone.style.backgroundColor = '#f8f9fa';
+        dropZone.style.transform = 'translateY(0)';
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = '#dee2e6';
-        dropZone.style.backgroundColor = '';
+        dropZone.style.backgroundColor = '#f8f9fa';
+        dropZone.style.transform = 'translateY(0)';
         
         const files = e.dataTransfer.files;
-        fileInput.files = files;
-        previewImages(files);
+        handleFiles(files);
     });
 
-    // File input change event
     fileInput.addEventListener('change', (e) => {
-        previewImages(e.target.files);
+        handleFiles(e.target.files);
     });
 
-    // Preview images function
-    function previewImages(files) {
-        imagePreview.innerHTML = '';
+    function handleFiles(files) {
         Array.from(files).forEach((file, index) => {
             if (file.type.startsWith('image/')) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`Image ${file.name} is too large. Max size is 5MB.`);
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const div = document.createElement('div');
-                    div.className = 'position-relative';
+                    div.className = 'image-preview-item';
                     div.innerHTML = `
                         <img src="${e.target.result}" class="thumbnail" alt="Preview ${index + 1}">
-                        <button type="button" class="btn btn-sm btn-danger btn-delete" onclick="removePreview(this, ${index})">
+                        <button type="button" class="btn btn-danger btn-sm btn-delete" onclick="removePreview(this)">
                             <i class="bi bi-x"></i>
                         </button>
                     `;
@@ -402,10 +750,8 @@
         });
     }
 
-    // Remove preview image
-    function removePreview(button, index) {
-        button.closest('.position-relative').remove();
-        // Note: Can't actually remove from FileList, but visual feedback is provided
+    function removePreview(button) {
+        button.closest('.image-preview-item').remove();
     }
 
     // Ticket functionality
@@ -415,65 +761,99 @@
 
     addTicketBtn.addEventListener('click', function() {
         ticketIndex++;
-
+        
         const ticketForm = document.createElement('div');
-        ticketForm.className = 'ticket-form mb-4 p-3 border rounded position-relative';
+        ticketForm.className = 'ticket-form';
         ticketForm.setAttribute('data-ticket-index', ticketIndex);
         ticketForm.innerHTML = `
-            <h6 class="mb-3">Ticket #${ticketIndex}</h6>
-            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 remove-ticket-btn">
-                <i class="bi bi-x"></i> Remove
-            </button>
-            <div class="mb-3">
-                <label class="form-label required-field">Ticket Name</label>
-                <input type="text" class="form-control" name="ticket_name_${ticketIndex}" required
-                    placeholder="Enter ticket name (e.g., General Admission, VIP)">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 fw-semibold text-primary">
+                    <i class="bi bi-ticket me-1"></i> Ticket #${ticketIndex}
+                </h6>
+                <button type="button" class="btn btn-danger btn-sm remove-ticket-btn">
+                    <i class="bi bi-trash me-1"></i> Remove
+                </button>
             </div>
-
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">Ticket Name</label>
+                    <input type="text" class="form-control" name="ticket_name_${ticketIndex}" required
+                        placeholder="e.g., General Admission, VIP, Early Bird">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">Quantity Available</label>
+                    <input type="number" class="form-control" name="ticket_quantity_${ticketIndex}"
+                        required min="1" placeholder="Total tickets available">
+                </div>
+            </div>
+            
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label required-field">Price</label>
-                    <div class="input-group">
+                    <div class="input-group price-input">
                         <span class="input-group-text">₹</span>
                         <input type="number" class="form-control" name="ticket_price_${ticketIndex}"
                             required min="0" step="0.01" placeholder="0.00">
                     </div>
                 </div>
-
                 <div class="col-md-6 mb-3">
-                    <label class="form-label required-field">Quantity Available</label>
-                    <input type="number" class="form-control" name="ticket_quantity_${ticketIndex}"
-                        required min="1" placeholder="Enter number of tickets available">
+                    <label class="form-label">Discount Code (Optional)</label>
+                    <input type="text" class="form-control" name="ticket_discount_code_${ticketIndex}"
+                        placeholder="Enter discount code for special offers">
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Discount Code (Optional)</label>
-                <input type="text" class="form-control" name="ticket_discount_code_${ticketIndex}"
-                    placeholder="Enter discount code if applicable">
-            </div>
-
+            
             <div class="mb-3">
                 <label class="form-label">Ticket Image (Optional)</label>
                 <input type="file" class="form-control" name="ticket_image_${ticketIndex}" accept="image/*">
             </div>
         `;
-
+        
         ticketsContainer.appendChild(ticketForm);
-
-        // Add event listener to the remove button for this ticket
+        
+        // Add remove functionality
         ticketForm.querySelector('.remove-ticket-btn').addEventListener('click', function() {
             ticketForm.remove();
         });
     });
 
-    // Add event listeners to existing remove buttons (if any)
-    document.querySelectorAll('.remove-ticket-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            this.closest('.ticket-form').remove();
+    // Reset button functionality
+    document.getElementById('resetBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to reset the form? All changes will be lost.')) {
+            document.getElementById('eventForm').reset();
+            document.getElementById('imagePreview').innerHTML = '';
+        }
+    });
+
+    document.getElementById('eventForm').addEventListener('submit', function(e) {
+        console.log('Form method:', this.method);
+        console.log('Form action:', this.action);
+        console.log('CSRF token:', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        // Check form data
+        const formData = new FormData(this);
+        console.log('Form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}:`, value);
+        }
+        // console.log('========================');
+        // alert('Stop now!!');
+    });
+
+    // Form validation
+    document.querySelectorAll('[required]').forEach(field => {
+        field.addEventListener('invalid', function() {
+            this.classList.add('is-invalid');
+        });
+        field.addEventListener('input', function() {
+            if (this.checkValidity()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
         });
     });
 
+    // Keep your existing delete functions
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -503,7 +883,7 @@
         })
         .then(response => {
             if (response.ok) {
-                element.closest('.position-relative').remove();
+                element.closest('.image-preview-item').remove();
             } else {
                 alert('Failed to delete image');
             }
@@ -528,7 +908,7 @@
         })
         .then(response => {
             if (response.ok) {
-                element.closest('.position-relative').remove();
+                element.closest('.image-preview-item').remove();
             } else {
                 alert('Failed to delete image');
             }
@@ -539,25 +919,16 @@
         });
     }
 
-    // Debug form submission
-    const eventForm = document.getElementById('eventForm');
-    eventForm.addEventListener('submit', function(e) {
-        console.log('Form submitting via:', this.method);
-        console.log('Form action:', this.action);
-        
-        // Validate required fields
-        const requiredFields = this.querySelectorAll('[required]');
-        let isValid = true;
-        requiredFields.forEach(field => {
-            if (!field.value) {
-                console.error('Missing required field:', field.name);
-                isValid = false;
-            }
+    // Character counter for description
+    // const description = document.getElementById('description');
+    // const charCount = document.getElementById('char-count');
+    
+    if (description && charCount) {
+        description.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
         });
-        
-        if (!isValid) {
-            console.error('Form validation failed');
-        }
-    });
-</script>
+        // Initialize count
+        charCount.textContent = description.value.length;
+    }
+ </script>
 {% endblock %}

@@ -1,7 +1,9 @@
 <nav class="navbar navbar-expand-lg bg-light shadow-sm" style="z-index: 444; position: fixed; top: 0; width: 100vw;">
   <div class="container">
 
-    <a class="navbar-brand" href="#">EventFlow</a>
+    <a class="navbar-brand navbar-brand-custom" href="{% url 'dashboard' %}">
+        Event<span class="brand-accent">Flow</span>
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -10,16 +12,16 @@
       <!-- Left side: Offers -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <span class="badge rounded-pill bg-warning text-dark px-3 py-2 shadow-sm">
+          <!-- <span class="badge rounded-pill bg-warning text-dark px-3 py-2 shadow-sm">
             🎉 Special Offer: 20% OFF today
-          </span>
+          </span> -->
         </li>
       </ul>
       <ul class="navbar-nav d-flex align-items-center">
         
         <!-- role_switcher.html -->
-        <div class="role-switcher">
-            <form method="post" action="{% url 'switch_role' %}" class="d-inline">
+        <div class="role-switcher shadow-sm">
+            <form method="post" action="{% url 'switch-role' %}" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <div class="input-group input-group-sm">
@@ -31,7 +33,7 @@
                         {% for role in request.user.available_roles.all %}
                             <option value="{{ role.id }}" 
                                 {% if request.user.current_role.id == role.id %}selected{% endif %}>
-                                {{ role.name }}
+                                {{ role.name|capfirst }}
                             </option>
                         {% endfor %}
                     </select>

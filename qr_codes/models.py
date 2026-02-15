@@ -74,7 +74,7 @@ class QRCode(models.Model):
             border=2,
             dark="#2D3748",   # dark blue/gray instead of pure black
             light="#F7FAFC",  # subtle off-white background
-            data_dark="#6B46C1",  # optional: emphasize data modules
+            data_dark="#425239",  # optional: emphasize data modules
         )
         img_buffer.seek(0)
 

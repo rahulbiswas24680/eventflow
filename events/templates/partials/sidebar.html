@@ -19,6 +19,36 @@
   z-index: 1030;
 }
 
+/* Default state: Hide the short logo */
+.logo-short {
+    display: none;
+}
+
+/* When sidebar is NOT shrinked, make sure full logo is visible */
+.logo-full {
+    display: inline-block;
+}
+
+/* When sidebar is shrinked */
+#sidebar.shrinked .logo-full {
+    display: none;
+}
+
+#sidebar.shrinked .logo-short {
+    display: inline-block;
+    font-size: 1.8rem; /* Make it a bit bigger since it's alone */
+    font-weight: 800;
+    color: #9be2b6; /* Match your mint green theme */
+}
+
+/* Ensure the brand container doesn't cause overflow in shrinked mode */
+#sidebar.shrinked .navbar-brand-custom {
+    width: 100%;
+    text-align: center;
+    padding: 0;
+    margin: 10px 0;
+}
+
 /* Shrinked sidebar */
 #sidebar.shrinked {
   width: 80px;
@@ -103,23 +133,22 @@
 </style>
 
 <div id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
-  <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-    <i class="bi bi-calendar3-event" style="font-size: xxx-large; color: #9be2b6;"></i> 
-      <span class="fs-4 sidebar-text"
-      style="color: #9be2b6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 700;"> EventFlow</span>
+  <a class="navbar-brand navbar-brand-custom mx-auto my-3 d-flex justify-content-center" href="{% url 'dashboard' %}">
+    <span class="logo-full">Event<span class="brand-accent">Flow</span></span>
+    
+    <span class="logo-short">E<span class="brand-accent">F</span></span>
   </a>
-  <hr>
   {% if request.user.current_role.name == 'organizer' %}
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path == '/dashboard' %}active{% endif %}">
+      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path|startswith:'/dashboard' %}active{% endif %}">
         <i class="bi bi-speedometer2"></i>
         <span class="sidebar-text">Dashboard</span>
       </a>
     </li>
 
     <li>
-      <a href="{% url 'our-events' %}" class="nav-link text-white {% if request.path|startswith:'/our-events' %}active{% endif %}">
+      <a href="{% url 'our-events' %}" class="nav-link text-white {% if request.path|startswith:'events' %}active{% endif %}">
         <i class="bi bi-calendar-event"></i>
         <span class="sidebar-text">Our Events</span>
       </a>
@@ -144,13 +173,13 @@
   {% else %}
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path == '/dashboard' %}active{% endif %}">
+      <a href="{% url 'dashboard' %}" class="nav-link text-white {% if request.path|startswith:'/dashboard' %}active{% endif %}">
         <i class="bi bi-speedometer2"></i>
         <span class="sidebar-text">Dashboard</span>
       </a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'events-home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}">
+      <a href="{% url 'events-home' %}" class="nav-link text-white {% if request.path|startswith:'/event' %}active{% endif %}">
         <i class="bi bi-binoculars"></i>
         <span class="sidebar-text">Explore Events</span>
       </a>

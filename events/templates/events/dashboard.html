@@ -75,10 +75,10 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                                 Total Revenue</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_revenue }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ total_revenue }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                            <i class="fas fa-2x text-gray-300">₹</i>
                         </div>
                     </div>
                 </div>
@@ -261,10 +261,10 @@
         <div class="col-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Your Event Activity</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Event Activity</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-bar" style="position: relative; height: 40vh; min-height: 300px;">
+                    <div class="chart-bar" style="position: relative; min-height: 300px;">
                         <canvas id="attendeeActivityChart"></canvas>
                     </div>
                 </div>
@@ -292,22 +292,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for registration in recent_registrations %}
-                                <tr>
-                                    <td>{{ registration.event.name }}</td>
-                                    <td>{{ registration.event.date|date:"M d, Y" }}</td>
-                                    <td>{{ registration.event.location }}</td>
-                                    <td>
-                                        <span
-                                            class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
-                                            {% if registration.is_completed %}Attended{% elif
-                                            registration.is_cancelled
-                                            %}Cancelled{% else %}Registered{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>{{ registration.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% endfor %}
+                                {% if recent_registrations %}
+                                    {% for registration in recent_registrations %}
+                                    <tr>
+                                        <td>{{ registration.event.name }}</td>
+                                        <td>{{ registration.event.date|date:"M d, Y" }}</td>
+                                        <td>{{ registration.event.location }}</td>
+                                        <td>
+                                            <span
+                                                class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
+                                                {% if registration.is_completed %}Attended
+                                                {% elif registration.is_cancelled %}Cancelled{% else %}Registered{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ registration.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            No registered events found.
+                                        </td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>

@@ -179,7 +179,8 @@ class TicketCheckoutApiView(APIView):
                 txn.session_id = checkout_session["id"]
             Transaction.objects.bulk_create(transactions_to_create)
 
-        except stripe.error.StripeError:
+        except stripe.error.StripeError as e:
+            print('stripe session error == ', e)
             return Response(
                 {"error": "Something went wrong in payment session"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -202,7 +203,7 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
-
+    print('calling webhook..')
     # ✅ Handle successful payment
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
@@ -215,6 +216,7 @@ def stripe_webhook(request):
         except Exception:
             return HttpResponse(status=400)
 
+        print('calling completed ev webhook..', session_id, user)
         # 🔑 Get all transactions belonging to this session
         transactions = Transaction.objects.filter(session_id=session_id)
 

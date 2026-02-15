@@ -305,7 +305,7 @@ function loadAttendees(filters = {}, page = 1) {
                         <span class="fw-bold">${rsvp.ticket_qty}</span>
                     </td>
                     <td class="text-end">
-                            <span class="fw-bold text-success">$${parseFloat(rsvp.total_charge || 0).toFixed(2)}</span>
+                            <span class="fw-bold text-success">₹${parseFloat(rsvp.total_charge || 0).toFixed(2)}</span>
                     </td>
                     <td class="text-center">
                             <small class="text-muted">${rsvp.created_at ? new Date(rsvp.created_at).toLocaleDateString() : ''}</small>

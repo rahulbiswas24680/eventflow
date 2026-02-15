@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import CustomUser as User
+from .models import CustomUser as User, Role
 
 
 def user_register(request):
@@ -32,8 +32,11 @@ def user_register(request):
             goal=request.POST.get("goal", ""),
             languages=request.POST.get("languages", ""),
             address=request.POST.get("address", ""),
-            country=request.POST.get("country", "")
+            country=request.POST.get("country", ""),
+            current_role='attendee'
         )
+        role_obj = Role.objects.get(name='attendee')
+        user.available_roles.add(role_obj)
         messages.success(request, "User registered successfully. Please log in.")
         return redirect("user-login")
 

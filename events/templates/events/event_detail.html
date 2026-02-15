@@ -2,30 +2,55 @@
 {% load static %}
 {% block content %}
 
+<style>
+    .carousel-item img {
+        height: 400px; /* Set fixed height */
+        width: 100%;
+        object-fit: cover; /* Crop image to fit, maintaining aspect ratio */
+        object-position: center; /* Center the image */
+    }
+    
+    /* Optional: Different heights for different screen sizes */
+    @media (max-width: 768px) {
+        .carousel-item img {
+            height: 250px;
+        }
+    }
+    
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .carousel-item img {
+            height: 250px;
+        }
+    }
+</style>
+
 <section class="container-md py-3">
   <div class="row" style="min-height: 100vh;">
     <div class="col-xl-3 mb-4">
-      <div class="card shadow-sm border-0 rounded overflow-hidden hover-lift transition" style="height: max-content">
+      
+    </div>
+    <div class="col-xl-6 mb-4">
+      <div class="card shadow-sm border-0 rounded overflow-hidden hover-lift transition mb-3" style="height: max-content">
         <!-- Optional: Add a header with subtle background -->
         <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
           <h6 class="text-primary mb-0 fw-bold text-uppercase small">
-            <i class="bi bi-star-fill me-1"></i> Featured
+            <i class="bi bi-star-fill me-1"></i> Event
           </h6>
         </div>
 
         <div class="card-body d-flex flex-column p-4" style="height: fixed;">
-          <h5 class="card-title fw-bold mb-3 text-truncate">{{ event.name }}</h5>
-          <p class="card-text text-muted flex-grow-1 mb-4 small">{{ event.description }}</p>
+          <h5 class="card-title fw-bold mb-3">{{ event.name }}</h5>
+          <p class="card-text text-muted flex-grow-1 mb-4 small">Organized by {{ event.organizer.organizer_name }}</p>
 
-          <div id="eventImagesControls" class="carousel slide my-3">
+          <div id="eventImagesControls" class="carousel slide">
             <div class="carousel-inner">
-              {% if images %}
-              {% for image in images %}
-              <div class="carousel-item active">
-                <img src="{{ image.image.url }}" class="d-block w-100" alt="...">
-              </div>
-              {% endfor %}
-              {% endif %}
+                {% if images %}
+                {% for image in images %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ image.image.url }}" class="d-block w-100" alt="Event Image {{ forloop.counter }}">
+                </div>
+                {% endfor %}
+                {% endif %}
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#eventImagesControls"
               data-bs-slide="prev">
@@ -40,25 +65,22 @@
           </div>
 
           <!-- Rating badge with icon -->
-          <div class="d-flex align-items-center justify-content-between">
+          <!-- <div class="d-flex align-items-center justify-content-between">
             <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-semibold">
               <i class="bi bi-star-fill me-1"></i> 4.6
             </span>
             <small class="text-muted">⭐ 86 reviews</small>
-          </div>
+          </div> -->
         </div>
 
         <div class="card-footer bg-white border-0 py-3">
           <div class="d-flex align-items-center justify-content-between text-muted small">
             <span><i class="bi bi-clock me-1"></i> 2 days ago</span>
-            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-              View Details
-            </a>
+            <span><i class="bi bi-geo-fill me-1"></i> <strong>{{ event.location }}</strong></span>
           </div>
         </div>
       </div>
-    </div>
-    <div class="col-xl-6 mb-4">
+
       <div class="accordion" id="accordionFlushExample">
         <!-- Tickets Accordion -->
         <div class="accordion-item border-0 shadow-sm rounded mb-3">
@@ -83,7 +105,7 @@
                     <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
                     <div class="position-absolute bottom-0 start-0 p-3 text-white">
                       <h5 class="card-title mb-1 fw-bold">{{ ticket.name }}</h5>
-                      <p class="card-text mb-0"><strong class="fs-5">${{ ticket.price }}</strong></p>
+                      <p class="card-text mb-0"><strong class="fs-5">₹${{ ticket.price }}</strong></p>
                     </div>
                   </div>
 
@@ -124,15 +146,12 @@
             <button class="accordion-button fw-bold bg-light text-info collapsed rounded" type="button"
               data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false"
               aria-controls="flush-collapseTwo">
-              📍 Location & Info
+              Description
             </button>
           </h2>
           <div id="flush-collapseTwo" class="accordion-collapse collapse">
             <div class="accordion-body">
-              <p><strong>Venue:</strong> Grand Conference Hall</p>
-              <p><strong>Address:</strong> 123 Main Street, City, Country</p>
-              <p><strong>Time:</strong> 10:00 AM - 6:00 PM</p>
-              <p><strong>Contact:</strong> +91-7855346632</p>
+              <p>{{ event.description|safe }}</p>
             </div>
           </div>
         </div>
@@ -151,9 +170,25 @@
                 <strong>Can I get a refund?</strong>
                 <p class="mb-0">Refunds are available up to 24 hours before the event.</p>
               </div>
-              <div>
+              <div class="mb-3">
                 <strong>Is parking available?</strong>
                 <p class="mb-0">Yes, free parking is available onsite.</p>
+              </div>
+              <div class="mb-3">
+                <strong>Do I need to carry a printed ticket?  </strong>
+                <p class="mb-0">No, digital tickets are accepted. Just show your booking confirmation at the entry.</p>
+              </div>
+              <div class="mb-3">
+                <strong>Who do I contact for support?  </strong>
+                <p class="mb-0">You can reach our customer support team via email or live chat on the platform.</p>
+              </div>
+              <div class="mb-3">
+                <strong>How do I join an online event?  </strong>
+                <p class="mb-0">A link will be sent to your registered email before the event starts.</p>
+              </div>
+              <div class="mb-3">
+                <strong>Can I watch the event later if I miss it?  </strong>
+                <p class="mb-0">Some events provide recordings. Check the event details for availability.</p>
               </div>
             </div>
           </div>
@@ -184,17 +219,17 @@
 
       <!-- Cart Summary -->
       <div class="border-top pt-3 mt-3">
-        <div class="d-flex justify-content-between mb-2">
+        <!-- <div class="d-flex justify-content-between mb-2">
           <span>Subtotal</span>
           <span id="cart-subtotal" class="fw-bold">$0.00</span>
-        </div>
-        <div class="d-flex justify-content-between mb-3">
+        </div> -->
+        <!-- <div class="d-flex justify-content-between mb-3">
           <span>Tax (8%)</span>
           <span id="cart-tax">$0.00</span>
-        </div>
+        </div> -->
         <div class="d-flex justify-content-between mb-4 fw-bold fs-5">
           <span>Total</span>
-          <span id="cart-total">$0.00</span>
+          <span id="cart-total">₹0.00</span>
         </div>
         <button id="checkout-btn" class="btn btn-primary w-100 py-2 rounded-pill fw-bold disabled"
           data-event-id="{{ event.id }}">
@@ -326,13 +361,14 @@
 
           // Calculate subtotal, tax (8%), and total
           const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const tax = parseFloat((subtotal * 0.08).toFixed(2));
+          // const tax = parseFloat((subtotal * 0.08).toFixed(2));
+          const tax = parseFloat(0);
           const total = parseFloat((subtotal + tax).toFixed(2));
 
           // Update cart summary UI
-          $('#cart-subtotal').text(`$${subtotal.toFixed(2)}`);
-          $('#cart-tax').text(`$${tax.toFixed(2)}`);
-          $('#cart-total').text(`$${total.toFixed(2)}`);
+          // $('#cart-subtotal').text(`₹${subtotal.toFixed(2)}`);
+          // $('#cart-tax').text(`₹${tax.toFixed(2)}`);
+          $('#cart-total').text(`₹${total.toFixed(2)}`);
 
           // Render cart items
           const $cartItems = $('#cart-boxes');
@@ -348,11 +384,11 @@
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <h6 class="mb-1 fw-semibold">${item.name}</h6>
-                  <p class="text-muted small mb-1">$${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
+                  <p class="text-muted small mb-1">₹${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
                   <small class="text-muted">Event: ${data.event.name}</small>
                 </div>
                 <div class="text-end">
-                  <div class="fw-bold text-primary mb-2">$${(price * item.quantity).toFixed(2)}</div>
+                  <div class="fw-bold text-primary mb-2">₹${(price * item.quantity).toFixed(2)}</div>
                 </div>
               </div>
             </div>`;
@@ -380,7 +416,7 @@
           // fallback if cart empty or API error
           $('#cart-count').text(0);
           $('#cart-subtotal').text('$0.00');
-          $('#cart-tax').text('$0.00');
+          // $('#cart-tax').text('$0.00');
           $('#cart-total').text('$0.00');
           $('#checkout-btn').addClass('disabled').attr('href', '#');
           $('#cart-boxes').empty();

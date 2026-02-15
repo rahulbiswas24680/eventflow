@@ -74,7 +74,7 @@ class RSVPListCreateView(generics.ListCreateAPIView):
         
         if ticket:
             queryset = queryset.filter(transaction__ticket_type__id=ticket)
-
+        print(queryset)
         return queryset.order_by("created_at")
     
     def list(self, request, *args, **kwargs):

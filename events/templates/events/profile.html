@@ -1,4 +1,5 @@
 {% extends 'events/base.html' %}
+{% load static %}
 
 {% block content %}
 
@@ -10,7 +11,7 @@
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-body text-center p-5">
           <img
-            src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D"
+            src="{{ MEDIA_URL }}profile-transparent.png"
             alt="Profile Picture" class="rounded-circle mb-3 border"
             style="width: 120px; height: 120px; object-fit: cover;">
           <h3 class="mb-1">{{ user.get_full_name|default:user.username }}</h3>
@@ -19,7 +20,7 @@
           </p>
           <p class="text-muted">
             <i class="bi bi-geo-alt"></i>
-            <span id="user-location">{{ user.address|default:"Location not set" }}</span>
+            <span id="user-location">{{ user.address|default:"No Location" }}</span>
           </p>
           <a href="{% url 'user-profile-update' %}" class="btn btn-outline-secondary btn-sm mt-2">
             <i class="bi bi-pencil"></i> Edit Profile
@@ -33,7 +34,7 @@
           <h5 class="mb-0"><i class="bi bi-person-badge"></i> Personal Information</h5>
         </div>
         <div class="card-body">
-          <div class="row">
+          <div class="row mx-5">
             <div class="col-md-6 mb-3">
               <label class="form-label text-secondary"><i class="bi bi-person"></i> Full Name</label>
               <p>{{ user.get_full_name|default:user.username }}</p>
@@ -41,10 +42,6 @@
             <div class="col-md-6 mb-3">
               <label class="form-label text-secondary"><i class="bi bi-telephone"></i> Phone</label>
               <p id="user-phone">{{ user.phone|default:"Not provided" }}</p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label text-secondary"><i class="bi bi-building"></i> Subscription</label>
-              <p id="user-subscription">FREE Trial</p>
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label text-secondary"><i class="bi bi-calendar"></i> Member Since</label>
