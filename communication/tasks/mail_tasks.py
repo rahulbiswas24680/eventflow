@@ -239,3 +239,22 @@ def organization_payment_event_mail(user_name: str, recipients: list = None):
         send_email(subject, message, to, html_message=html_message)
     except Exception as e:
         return f"Error {organization_payment_event_mail.__name__} sending email: {e}"
+
+
+@shared_task
+def cleanup_expired_sessions():
+    """
+    Periodic task to clean up expired sessions from database.
+    Run daily via Celery Beat.
+    """
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    expired_threshold = timezone.now() - timedelta(days=7)
+    
+    deleted_count = Session.objects.filter(
+        expire_date__lt=expired_threshold
+    ).delete()[0]
+    
+    return {'status': 'success', 'sessions_deleted': deleted_count}

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, F, Q, Sum, OuterRef, Subquery
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -674,6 +674,7 @@ def dashboard(request):
     # Ensure user_profile is CustomUser instance
     user_profile = request.user
     today = timezone.now()
+    months_ago_12 = (today - timedelta(days=365)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
     # Organizer Dashboard
     if hasattr(user_profile, 'current_role') and user_profile.current_role.name == 'organizer':
@@ -701,53 +702,91 @@ def dashboard(request):
             event__organizer__user=request.user,
             is_completed=True
         ).aggregate(total=Sum('total_charge'))['total'] or 0
+
         
-        # Registration Funnel Data
+        # Get ticket type capacity per event
+        ticket_capacity_subquery = TicketType.objects.filter(
+            event_id=OuterRef('id')
+        ).values('event_id').annotate(
+            total_capacity=Sum('quantity_available')
+        ).values('total_capacity')[:1]
+        
+        # Get RSVP counts per event
+        rsvp_count_subquery = RSVP.objects.filter(
+            event_id=OuterRef('id'),
+            is_completed=True
+        ).values('event_id').annotate(
+            count=Count('id')
+        ).values('count')[:1]
+        
+        # Get attended count (is_attended field)
+        attended_count_subquery = RSVP.objects.filter(
+            event_id=OuterRef('id'),
+            is_attended=True
+        ).values('event_id').annotate(
+            count=Count('id')
+        ).values('count')[:1]
+        
+        # Optimized query - single database hit with annotations
+        recent_events = organized_events.order_by('-created_at')[:5].annotate(
+            capacity=Subquery(ticket_capacity_subquery),
+            registered=Subquery(rsvp_count_subquery),
+            attended=Subquery(attended_count_subquery)
+        )
+        
         registration_data = []
-        for event in organized_events.order_by('-created_at')[:5]:
-            # Calculate total capacity from ticket types
-            total_capacity = TicketType.objects.filter(event=event).aggregate(
-                total=Sum('quantity_available')
-            )['total'] or 0
-            
-            registered = RSVP.objects.filter(event=event, is_completed=True).count()
-            attended = RSVP.objects.filter(event=event, is_completed=True).count() # Assuming is_completed means attended
+        for event in recent_events:
+            registered = event.registered or 0
+            attended = event.attended or 0
             conversion_rate = (attended / registered * 100) if registered > 0 else 0
             
             registration_data.append({
                 'event': event.name,
-                'capacity': total_capacity,
+                'capacity': event.capacity or 0,
                 'registered': registered,
                 'attended': attended,
                 'conversion_rate': round(conversion_rate, 1)
             })
         
-        # Monthly Growth Chart Data
+        # Monthly Growth Chart Data - Optimized with single query using TruncMonth
+        from django.db.models.functions import TruncMonth
+        
+        rsvp_by_month = RSVP.objects.filter(
+            event__organizer__user=request.user,
+            is_completed=True,
+            created_at__gte=months_ago_12
+        ).annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(
+            attendees=Count('id'),
+            revenue=Sum('total_charge')
+        ).order_by('month')
+        
+        events_by_month = organized_events.filter(
+            created_at__gte=months_ago_12
+        ).annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(
+            count=Count('id')
+        ).order_by('month')
+        
+        # Create lookup dicts for O(1) access
+        rsvp_lookup = {item['month'].strftime('%Y-%m'): item for item in rsvp_by_month}
+        event_lookup = {item['month'].strftime('%Y-%m'): item for item in events_by_month}
+        
         monthly_data = []
         for i in range(12):
-            month_start = (today - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            month_end = (month_start + timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+            month_date = (today - timedelta(days=30*i)).replace(day=1)
+            month_key = month_date.strftime('%Y-%m')
             
-            month_events = organized_events.filter(
-                created_at__range=[month_start, month_end]
-            )
-            month_attendees = RSVP.objects.filter(
-                event__organizer__user=request.user,
-                created_at__range=[month_start, month_end],
-                is_completed=True
-            ).count()
-            
-            month_revenue = RSVP.objects.filter(
-                event__organizer__user=request.user,
-                created_at__range=[month_start, month_end],
-                is_completed=True
-            ).aggregate(total=Sum('total_charge'))['total'] or 0
+            month_rsvp = rsvp_lookup.get(month_key, {})
+            month_event = event_lookup.get(month_key, {})
             
             monthly_data.append({
-                'month': month_start.strftime('%b %Y'),
-                'events': month_events.count(),
-                'attendees': month_attendees,
-                'revenue': float(month_revenue) # Ensure float for JSON serialization
+                'month': month_date.strftime('%b %Y'),
+                'events': month_event.get('count', 0),
+                'attendees': month_rsvp.get('attendees', 0),
+                'revenue': float(month_rsvp.get('revenue', 0) or 0)
             })
         
         monthly_data.reverse()
@@ -786,9 +825,12 @@ def dashboard(request):
         cancelled_events = attendee_rsvps.filter(is_cancelled=True).count()
         
         # Event Categories attended (assuming 'category' field exists in Event model metadata)
-        category_distribution = attendee_rsvps.filter(
-            is_completed=True
-        ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count') if Event._meta.get_field('metadata').null else []
+        if Event._meta.get_field('metadata').null:
+            category_distribution = attendee_rsvps.filter(
+                is_completed=True
+            ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count')
+        else:
+            category_distribution = []
         
         # Monthly Activity
         monthly_activity = []
@@ -890,6 +932,17 @@ def our_events(request):
                 'attendance_rate': (stat['attended_count'] / stat['registered_count'] * 100) if stat['registered_count'] > 0 else 0
             }
     
+    # Get ticket capacity for all events on current page in a single query
+    ticket_capacity_map = {}
+    if event_ids:
+        ticket_totals = TicketType.objects.filter(
+            event_id__in=event_ids
+        ).values('event_id').annotate(
+            total_capacity=Sum('quantity_available')
+        )
+        for tc in ticket_totals:
+            ticket_capacity_map[tc['event_id']] = tc['total_capacity']
+    
     # Add attendance stats and other properties to each event
     for event in page_obj:
         stats = attendance_stats.get(event.id, {
@@ -903,10 +956,8 @@ def our_events(request):
         event.attendance_rate = stats['attendance_rate']
         event.is_draft = not event.is_published  # Add draft status
         
-        # Calculate max attendees from ticket types
-        event.max_attendees = TicketType.objects.filter(event=event).aggregate(
-            total=Sum('quantity_available')
-        )['total'] or 0
+        # Get max attendees from pre-fetched ticket capacity
+        event.max_attendees = ticket_capacity_map.get(event.id, 0)
     
     context = {
         'events': page_obj,  # Use page_obj instead of events
@@ -1024,9 +1075,12 @@ def dashboard_chart_data(request):
             return JsonResponse({'data': monthly_activity})
         
         elif chart_type == 'category_distribution':
-            category_distribution = attendee_rsvps.filter(
-                is_completed=True
-            ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count') if Event._meta.get_field('metadata').null else []
+            if Event._meta.get_field('metadata').null:
+                category_distribution = attendee_rsvps.filter(
+                    is_completed=True
+                ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count')
+            else:
+                category_distribution = []
             return JsonResponse({'data': list(category_distribution)})
             
     return JsonResponse({'data': []})

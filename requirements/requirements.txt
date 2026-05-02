@@ -62,6 +62,7 @@ django==5.0.1
     #   django-celery-results
     #   django-cors-headers
     #   django-filter
+    #   django-redis
     #   djangorestframework
     #   djangorestframework-simplejwt
     #   drf-spectacular
@@ -70,6 +71,8 @@ django-celery-results==2.5.1
 django-cors-headers==4.9.0
     # via -r ./requirements/requirements.in
 django-filter==23.5
+    # via -r ./requirements/requirements.in
+django-redis==5.4.0
     # via -r ./requirements/requirements.in
 djangorestframework==3.14.0
     # via
@@ -90,6 +93,8 @@ fonttools[woff]==4.61.1
     # via
     #   fonttools
     #   weasyprint
+flower==2.0.1
+    # via -r ./requirements/requirements.in
 forex-python==1.8
     # via -r ./requirements/requirements.in
 gotrue==2.1.0
@@ -180,7 +185,9 @@ pyyaml==6.0.1
 realtime==1.0.2
     # via supabase
 redis==5.0.1
-    # via celery
+    # via
+    #   celery
+    #   django-redis
 referencing==0.32.1
     # via
     #   jsonschema

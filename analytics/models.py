@@ -5,39 +5,38 @@ from events.models import Event, TicketType
 
 class EventAnalytics(models.Model):
     event = models.OneToOneField(Event, on_delete=models.PROTECT)
-    total_tickets = models.IntegerField(default=0)
-    tickets_sold = models.IntegerField(default=0)
+    total_rsvps = models.IntegerField(default=0)
     total_revenue = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
-    unique_visits = models.IntegerField(default=0)
-    total_visits = models.IntegerField(default=0)
+    total_attended = models.IntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'EventAnalytics'
+        indexes = [
+            models.Index(fields=['event'], name='analytics_event_idx'),
+        ]
 
     def __str__(self):
         return self.event.name
 
-    def save(self, *args, **kwargs):
-        # Custom save logic here
-        super().save(*args, **kwargs)
-
 
 class TicketTypeAnalytics(models.Model):
     ticket_type = models.OneToOneField(TicketType, on_delete=models.PROTECT)
-    tickets_sold = models.IntegerField(default=0)
-    tickets_remaining = models.IntegerField(default=0)
-    gross_revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_sold = models.IntegerField(default=0)
+    total_revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    remaining_quantity = models.IntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'TicketTypeAnalytics'
+        indexes = [
+            models.Index(fields=['ticket_type'], name='analytics_ticket_idx'),
+        ]
 
     def __str__(self):
-        return self.ticket_type + '-' + self.tickets_sold + ' sold'
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        return f"{self.ticket_type.name} - {self.total_sold} sold"

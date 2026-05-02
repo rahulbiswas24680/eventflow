@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 
 from ..models import CustomUser, UserRSVPHistory, Organizer
 from .serializers import (
@@ -40,6 +41,7 @@ class UserRSVPHistoryDetailView(generics.RetrieveAPIView):
 class OrganizersListCreateView(generics.ListCreateAPIView):
     queryset = Organizer.objects.all()
     serializer_class = OrganizerSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = Organizer.objects.filter(user=self.request.user)
@@ -58,6 +60,7 @@ class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Organizer.objects.all()
     serializer_class = OrganizerSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Restrict to organizers owned by the requesting user

@@ -258,16 +258,22 @@
             })
             .then(data => {
                 loadingState.classList.add('d-none');
-                organizersData = data;
                 
-                if (data.length === 0) {
+                if (!Array.isArray(data.results)) {
+                    console.error('API returned non-array:', data.results);
+                    throw new Error('Invalid data format');
+                }
+                
+                organizersData = data.results;
+                
+                if (data.results.length === 0) {
                     emptyState.classList.remove('d-none');
-                    updateStats(data);
+                    updateStats(data.results);
                     return;
                 }
                 
-                updateStats(data);
-                renderOrganizers(data);
+                updateStats(data.results);
+                renderOrganizers(data.results);
             })
             .catch(error => {
                 console.error('Error loading organizers:', error);

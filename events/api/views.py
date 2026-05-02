@@ -23,24 +23,24 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class EventListCreateView(generics.ListCreateAPIView):
-    queryset = Event.objects.all().order_by("created_at")
+    queryset = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').order_by("created_at")
     serializer_class = EventSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'location', 'date']
 
 
 class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Event.objects.all()
+    queryset = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set', 'attendees')
     serializer_class = EventDetailSerializer
 
 
 class TicketTypeListCreateView(generics.ListCreateAPIView):
-    queryset = TicketType.objects.all().order_by("created_at")
+    queryset = TicketType.objects.select_related('event').order_by("created_at")
     serializer_class = TicketTypeSerializer
 
 
 class TicketTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = TicketType.objects.all()
+    queryset = TicketType.objects.select_related('event')
     serializer_class = TicketTypeSerializer
 
 

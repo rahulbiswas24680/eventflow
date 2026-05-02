@@ -42,6 +42,13 @@ class Transaction(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Transaction"
         verbose_name_plural = "Transactions"
+        indexes = [
+            models.Index(fields=['session_id'], name='txn_session_idx'),
+            models.Index(fields=['transaction_id'], name='txn_id_idx'),
+            models.Index(fields=['user', '-created_at'], name='txn_user_idx'),
+            models.Index(fields=['payment_status', '-created_at'], name='txn_status_idx'),
+            models.Index(fields=['ticket_type', 'payment_status'], name='txn_ticket_status_idx'),
+        ]
 
     def __str__(self):
         return (
@@ -135,6 +142,10 @@ class TransactionOfOrganizer(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Transaction of Organizer"
         verbose_name_plural = "Transactions of Organizer"
+        indexes = [
+            models.Index(fields=['event_bill', '-created_at'], name='txn_org_event_idx'),
+            models.Index(fields=['payment_status', '-created_at'], name='txn_org_status_idx'),
+        ]
 
     def __str__(self):
         return f"{self.event_bill.organizer.organizer_name}-{self.amount}"

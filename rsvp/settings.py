@@ -99,6 +99,21 @@ DATABASES = {
     }
 }
 
+# Redis Cache Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config("REDIS_URL", "redis://localhost:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+# Session Configuration (Redis-backed for faster cart operations)
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
@@ -180,6 +195,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 20,
     "SEARCH_PARAM": "search",
     "ORDERING_PARAM": "ordering",
     "EXCEPTION_HANDLER": "rsvp.handlers.custom_exception_handler",
@@ -237,8 +254,32 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kolkata"
-CELERY_RESULT_BACKEND = "django-db"
-# CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
+# Celery Task Routes - Separate queues for different task types
+CELERY_TASK_ROUTES = {
+    'communication.tasks.mail_tasks.*': {'queue': 'emails'},
+    'communication.tasks.notification_tasks.*': {'queue': 'emails'},
+    '*.heavy_*': {'queue': 'heavy'},
+}
+
+# Celery Task Settings
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_TASK_TIME_LIMIT = 300  # 5 minutes hard limit
+CELERY_TASK_SOFT_TIME_LIMIT = 240  # 4 minutes soft limit
+
+# Celery Beat Schedule (for periodic tasks)
+CELERY_BEAT_SCHEDULE = {
+    'mark-finished-events': {
+        'task': 'events.tasks.mark_finished_events',
+        'schedule': 3600.0,  # Every hour
+    },
+    'cleanup-expired-sessions': {
+        'task': 'communication.tasks.cleanup_expired_sessions',
+        'schedule': 86400.0,  # Daily
+    },
+}
 
 
 

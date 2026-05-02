@@ -31,6 +31,12 @@ class Event(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Event'
         verbose_name_plural = 'Events'
+        indexes = [
+            models.Index(fields=['date'], name='event_date_idx'),
+            models.Index(fields=['is_published', 'is_active', 'date'], name='event_pub_act_date_idx'),
+            models.Index(fields=['has_finished_event', 'date'], name='event_finish_date_idx'),
+            models.Index(fields=['organizer', '-created_at'], name='event_org_created_idx'),
+        ]
 
     def __str__(self):
         return self.name + '-' + self.organizer.organizer_name
@@ -90,31 +96,17 @@ class TicketType(models.Model):
         ordering = ['-created_at']
         verbose_name = 'TicketType'
         verbose_name_plural = 'TicketTypes'
+        indexes = [
+            models.Index(fields=['event', '-created_at'], name='tickettype_event_idx'),
+            models.Index(fields=['stripe_price_id'], name='tickettype_stripe_idx'),
+        ]
 
     def __str__(self):
         return self.name + '-' + self.event.name
 
 
     def save(self, *args, **kwargs):
-        if not self.stripe_price_id:
-            product_price = self.create_stripe_ticket_as_prod()
-            self.stripe_price_id = product_price.id
-
         super().save(*args, **kwargs)
-
-    def create_stripe_ticket_as_prod(self):
-        prod = stripe.Product.create(
-            name=self.name,
-            description=f'The ticket of {self.event.name} event.',
-            active=True
-        )
-        prod_price = stripe.Price.create(
-            product=prod.id,
-            currency='inr',
-            unit_amount=int(self.price * 100)
-        )
-
-        return prod_price
 
 
 class RSVP(models.Model):
@@ -136,6 +128,13 @@ class RSVP(models.Model):
         ordering = ['-created_at']
         verbose_name = 'RSVP'
         verbose_name_plural = 'RSVPs'
+        indexes = [
+            models.Index(fields=['event', '-created_at'], name='rsvp_event_idx'),
+            models.Index(fields=['attendee', '-created_at'], name='rsvp_attendee_idx'),
+            models.Index(fields=['transaction_id'], name='rsvp_txn_id_idx'),
+            models.Index(fields=['is_active', 'is_cancelled', 'is_attended'], name='rsvp_status_idx'),
+            models.Index(fields=['event', 'is_active'], name='rsvp_event_active_idx'),
+        ]
 
     def __str__(self):
         return self.attendee.id.__str__() + '-' + self.event.name
@@ -150,15 +149,17 @@ class RSVP(models.Model):
         # Auto-set is_active
         self.is_active = not (self.is_cancelled or self.is_completed or self.is_expired)
         
-        # Handle ticket quantity when RSVP is completed
+        # Handle ticket quantity when RSVP is completed - with race condition protection
         if self.is_completed and not self.pk:
-            # Only decrement on new completed RSVPs
-            ticket_type = self.event.tickettype_set.first()
-            if ticket_type and ticket_type.quantity_available >= self.ticket_qty:
-                ticket_type.quantity_available -= self.ticket_qty
-                ticket_type.save()
-            else:
-                raise ValueError("Not enough tickets available")
+            from django.db import transaction
+            with transaction.atomic():
+                # Lock the ticket type row to prevent over-selling
+                ticket_type = self.event.tickettype_set.select_for_update().first()
+                if ticket_type and ticket_type.quantity_available >= self.ticket_qty:
+                    ticket_type.quantity_available -= self.ticket_qty
+                    ticket_type.save(update_fields=['quantity_available'])
+                else:
+                    raise ValueError("Not enough tickets available")
                 
         super().save(*args, **kwargs)
 

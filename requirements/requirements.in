@@ -12,6 +12,8 @@ segno==1.6.0
 forex-python==1.8
 celery[redis]==5.3.6
 django-celery-results==2.5.1
+django-redis==5.4.0
+flower==2.0.1
 pytest-django==4.7.0
 pytest-factoryboy==2.6.0
 Faker==22.5.1

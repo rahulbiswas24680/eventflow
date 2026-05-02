@@ -180,3 +180,7 @@ cython_debug/
 
 /media/
 /staticfiles
+
+
+opencode.json
+stories.txt
