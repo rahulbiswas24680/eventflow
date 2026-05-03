@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from django.db import transaction
 from .models import Event, RSVP, TicketType
 from payments.models import EventPaymentBill
+from django.core.cache import cache
 
 
 @receiver(post_save, sender=Event)
@@ -96,3 +97,83 @@ def trigger_stripe_product_creation(sender, instance, created, **kwargs):
             )
         except Exception:
             pass
+
+
+@receiver(post_save, sender=Event)
+def invalidate_event_cache(sender, instance, created, **kwargs):
+    """
+    Invalidate cache when Event is created or updated.
+    """
+    try:
+        cache.delete(f"event:{instance.pk}")
+        cache.delete(f"event:slug:{instance.slug}")
+        cache.delete("events:home")
+        cache.delete("events:list")
+    except Exception:
+        pass
+
+
+@receiver(post_delete, sender=Event)
+def invalidate_event_cache_on_delete(sender, instance, **kwargs):
+    """
+    Invalidate cache when Event is deleted.
+    """
+    try:
+        cache.delete(f"event:{instance.pk}")
+        cache.delete(f"event:slug:{instance.slug}")
+        cache.delete("events:home")
+        cache.delete("events:list")
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=TicketType)
+def invalidate_ticket_cache(sender, instance, created, **kwargs):
+    """
+    Invalidate cache when TicketType is created or updated.
+    """
+    try:
+        cache.delete(f"tickettype:{instance.pk}")
+        cache.delete(f"event:{instance.event_id}")
+        cache.delete("events:home")
+    except Exception:
+        pass
+
+
+@receiver(post_delete, sender=TicketType)
+def invalidate_ticket_cache_on_delete(sender, instance, **kwargs):
+    """
+    Invalidate cache when TicketType is deleted.
+    """
+    try:
+        cache.delete(f"tickettype:{instance.pk}")
+        cache.delete(f"event:{instance.event_id}")
+        cache.delete("events:home")
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=RSVP)
+def invalidate_rsvp_cache(sender, instance, created, **kwargs):
+    """
+    Invalidate cache when RSVP is created or updated.
+    """
+    try:
+        cache.delete(f"rsvp:{instance.pk}")
+        cache.delete(f"event:{instance.event_id}")
+        cache.delete(f"user:{instance.attendee_id}:rsvps")
+    except Exception:
+        pass
+
+
+@receiver(post_delete, sender=RSVP)
+def invalidate_rsvp_cache_on_delete(sender, instance, **kwargs):
+    """
+    Invalidate cache when RSVP is deleted.
+    """
+    try:
+        cache.delete(f"rsvp:{instance.pk}")
+        cache.delete(f"event:{instance.event_id}")
+        cache.delete(f"user:{instance.attendee_id}:rsvps")
+    except Exception:
+        pass

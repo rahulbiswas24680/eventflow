@@ -296,3 +296,30 @@ def create_stripe_products_bulk(ticket_type_ids: list):
         'success': success_count,
         'results': results
     }
+
+
+@shared_task
+def refresh_currency_rates():
+    """
+    Refresh forex rates in cache daily.
+    Run via Celery Beat every 24 hours.
+    """
+    from forex_python.converter import CurrencyRates
+    from django.core.cache import cache
+    
+    base_currency = "INR"
+    target_currencies = ["USD", "EUR", "GBP", "CAD", "AUD"]
+    
+    c = CurrencyRates()
+    results = {}
+    
+    for currency in target_currencies:
+        try:
+            rate = c.get_rate(currency, base_currency)
+            cache_key = f"forex_rate:{currency}:{base_currency}"
+            cache.set(cache_key, rate, timeout=86400 * 2)
+            results[currency] = rate
+        except Exception as e:
+            results[currency] = f"error: {str(e)}"
+    
+    return {'status': 'success', 'rates': results}

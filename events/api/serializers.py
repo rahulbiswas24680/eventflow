@@ -65,11 +65,19 @@ class CurrencyAwareDecimalField(serializers.DecimalField):
 
 
 def convert_to_base_currency(amount, currency):
-    # Use an external service or library to perform currency conversion
-    # In this example, we use the forex-python library
-    c = CurrencyRates()
-    # Convert to INR as an example
-    conversion_rate = c.get_rate(currency, "INR")
+    if currency == "INR":
+        return amount
+    
+    from django.core.cache import cache
+    
+    cache_key = f"forex_rate:{currency}:INR"
+    conversion_rate = cache.get(cache_key)
+    
+    if conversion_rate is None:
+        c = CurrencyRates()
+        conversion_rate = c.get_rate(currency, "INR")
+        cache.set(cache_key, conversion_rate, timeout=86400)
+    
     converted_amount = amount * conversion_rate
     return converted_amount
 

@@ -200,6 +200,18 @@ REST_FRAMEWORK = {
     "SEARCH_PARAM": "search",
     "ORDERING_PARAM": "ordering",
     "EXCEPTION_HANDLER": "rsvp.handlers.custom_exception_handler",
+    # Throttling configuration backed by Redis
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "user": "1000/hour",
+        "login": "10/minute",
+        "signup": "10/minute",
+        "payment": "20/minute",
+    },
 }
 
 SPECTACULAR_SETTINGS = {

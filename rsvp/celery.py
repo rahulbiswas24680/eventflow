@@ -37,6 +37,10 @@ app.conf.beat_schedule = {
         'task': 'analytics.tasks.refresh_all_analytics',
         'schedule': crontab(hour=1, minute=0),  # Daily at 1 AM
     },
+    'refresh-currency-rates': {
+        'task': 'events.tasks.refresh_currency_rates',
+        'schedule': crontab(hour=2, minute=0),  # Daily at 2 AM
+    },
 }
 
 # Task routing for different queues

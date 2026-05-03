@@ -107,6 +107,8 @@ class TicketCheckoutApiView(APIView):
         { "ticket_id": 8, "quantity": 3 }
     ]
     """
+    from rsvp.throttles import PaymentRateThrottle
+    throttle_classes = [PaymentRateThrottle]
 
     serializer_class = None
 
