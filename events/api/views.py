@@ -1,12 +1,14 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, generics, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from events.models import RSVP, Event
@@ -23,10 +25,11 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class EventListCreateView(generics.ListCreateAPIView):
-    queryset = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').order_by("created_at")
+    queryset = Event.objects.filter(is_published=True, is_active=True).select_related('organizer').prefetch_related('images', 'tickettype_set').order_by("created_at")
     serializer_class = EventSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'location', 'date']
+    permission_classes = [AllowAny]
 
 
 class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -193,4 +196,43 @@ def delete_ticket_image(request, event_id, ticket_id):
     ticket_img.image = None
     ticket_img.save(update_fields=["image"])
     return JsonResponse({"success": True, "message": "Ticket image deleted successfully"})
+
+
+class OrganizerEventsView(generics.ListAPIView):
+    """API endpoint for organizer to search their own events (including drafts)"""
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        # Only return events for the current organizer
+        events = Event.objects.filter(organizer__user=user).order_by('-created_at')
+        
+        # Filter by status
+        status_filter = self.request.query_params.get('status', 'all')
+        today = timezone.now()
+        
+        if status_filter == 'active':
+            events = events.filter(
+                date__date=today.date(),
+                is_active=True,
+                is_published=True
+            )
+        elif status_filter == 'upcoming':
+            events = events.filter(date__gt=today, is_active=True, is_published=True)
+        elif status_filter == 'past':
+            events = events.filter(date__lt=today, is_active=True, is_published=True)
+        elif status_filter == 'draft':
+            events = events.filter(is_published=False)
+        
+        # Search functionality
+        search = self.request.query_params.get('search', '')
+        if search:
+            events = events.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(location__icontains=search)
+            )
+        
+        return events.select_related('organizer').prefetch_related('images', 'tickettype_set')
 

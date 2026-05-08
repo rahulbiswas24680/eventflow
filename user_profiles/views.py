@@ -100,7 +100,20 @@ def user_profile_update(request):
         user.languages = request.POST.get("languages", user.languages)
         user.address = request.POST.get("address", user.address)
         user.country = request.POST.get("country", user.country)
-        user.save()
+        
+        # Handle image upload
+        new_image = request.FILES.get('image')
+        if new_image:
+            # Delete old image if exists
+            if user.image:
+                user.image.delete(save=False)
+            user.image = new_image
+        
+        # Only update specific fields for efficiency
+        user.save(update_fields=[
+            'phone', 'profession', 'education', 'goal', 
+            'languages', 'address', 'country', 'image'
+        ])
 
         messages.success(request, "Profile updated successfully.")
         return redirect("user-profile-update")

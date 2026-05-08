@@ -1,13 +1,14 @@
 from django.urls import path
 
-from .views import (EventDetailView, EventListCreateView, RSVPDetailView,
-                    RSVPListCreateView, TicketTypeDetailView,
+from .views import (EventDetailView, EventListCreateView, OrganizerEventsView,
+                    RSVPDetailView, RSVPListCreateView, TicketTypeDetailView,
                     TicketTypeListCreateView, delete_event_image,
                     delete_ticket_image, update_rsvp_status)
 
 urlpatterns = [
     path('list/', EventListCreateView.as_view(), name='event-list'),
     path('detail/<int:pk>/', EventDetailView.as_view(), name='event-detail'),
+    path('our-events/', OrganizerEventsView.as_view(), name='organizer-events-list'),
     
     path('tickettypes/', TicketTypeListCreateView.as_view(), name='tickettype-list'),
     path('tickettypes/<int:pk>/', TicketTypeDetailView.as_view(), name='tickettype-detail'),

@@ -17,6 +17,7 @@ class Event(models.Model):
     organizer = models.ForeignKey('user_profiles.Organizer', on_delete=models.PROTECT, default=None)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    description_html = models.TextField(blank=True, null=True)
     date = models.DateTimeField()
     location = models.TextField(blank=True, null=True)
     metadata = models.JSONField(null=True, blank=True)

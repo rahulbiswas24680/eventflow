@@ -5,20 +5,6 @@ from events.models import RSVP
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
-    # groups = models.ManyToManyField(
-    #     Group,
-    #     related_name='customuser_groups',
-    #     blank=True,
-    #     help_text='The groups this user belongs to.'
-    # )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='customuser_permissions',
-        blank=True,
-        help_text='Specific permissions for this user.'
-    )
-    available_roles = models.ManyToManyField('Role', related_name='users')
-    current_role = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True, blank=True, related_name='active_users')
     phone = models.CharField(max_length=20, blank=True)
     profession = models.CharField(max_length=100, blank=True)
     education = models.CharField(max_length=100, blank=True)
@@ -26,7 +12,9 @@ class CustomUser(AbstractUser):
     languages = models.CharField(max_length=100, blank=True)
     address = models.TextField(blank=True)
     country = models.CharField(max_length=100, blank=True)
-    # image = models.ImageField(upload_to='profile_images/', blank=True)
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    available_roles = models.ManyToManyField('Role', related_name='users')
+    current_role = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True, blank=True, related_name='active_users')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -65,6 +53,7 @@ class Organizer(models.Model):
     organizer_phone = models.CharField(max_length=100, blank=True, null=True)
     organizer_address = models.TextField(blank=True, null=True)
     organizer_slug = models.CharField(max_length=200, blank=True, null=True)
+    organizer_image = models.ImageField(upload_to='organizer_images/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

@@ -106,7 +106,6 @@ def invalidate_event_cache(sender, instance, created, **kwargs):
     """
     try:
         cache.delete(f"event:{instance.pk}")
-        cache.delete(f"event:slug:{instance.slug}")
         cache.delete("events:home")
         cache.delete("events:list")
     except Exception:
@@ -120,7 +119,6 @@ def invalidate_event_cache_on_delete(sender, instance, **kwargs):
     """
     try:
         cache.delete(f"event:{instance.pk}")
-        cache.delete(f"event:slug:{instance.slug}")
         cache.delete("events:home")
         cache.delete("events:list")
     except Exception:

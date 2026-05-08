@@ -231,9 +231,9 @@ def events_home(request):
 
 @login_required
 def event_detail(request, event_id):
-    event = Event.objects.get(id=event_id)
-    images = EventImage.objects.filter(event=event)
-    tickets = TicketType.objects.filter(event__id=event_id)
+    event = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').get(id=event_id)
+    images = event.images.all()
+    tickets = event.tickettype_set.all()
     context = {"event": event, "tickets": tickets, "images": images}
     return render(request, "events/event_detail.html", context)
 

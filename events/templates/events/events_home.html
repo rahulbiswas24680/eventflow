@@ -366,14 +366,17 @@
 
                 $loader.removeClass('d-none');
 
-                $.ajax({
+$.ajax({
                     url: `{% url 'event-list' %}?search=${encodeURIComponent(searchTerm)}`,
                     type: "GET",
                     success: function (data) {
                         $loader.addClass('d-none');
                         $dropdown.empty();
-
-                        if (!data || data.length === 0) {
+                        
+                        // Handle DRF paginated response format
+                        const events = data.results || data;
+                        
+                        if (!events || events.length === 0) {
                             $dropdown
                                 .addClass('show')
                                 .html(`
@@ -391,11 +394,11 @@
                         // Add header
                         $dropdown.append(`
                             <div class="dropdown-header text-muted small px-3 py-2">
-                                Found ${data.length} event${data.length !== 1 ? 's' : ''}
+                                Found ${events.length} event${events.length !== 1 ? 's' : ''}
                             </div>
                         `);
                         
-                        data.forEach(event => {
+                        events.forEach(event => {
                             const eventImage = event.images && event.images[0] ? event.images[0].image : 'https://via.placeholder.com/50';
                             const item = `
                                 <a href="/event/${event.id}" class="dropdown-item py-3 border-bottom">
@@ -423,7 +426,7 @@
                             `;
                             $dropdown.append(item);
                         });
-
+                        
                         $dropdown.addClass('show');
                     },
                     error: function () {

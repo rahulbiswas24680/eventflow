@@ -151,7 +151,7 @@
           </h2>
           <div id="flush-collapseTwo" class="accordion-collapse collapse">
             <div class="accordion-body">
-              <p>{{ event.description|safe }}</p>
+              <p>{% if event.description_html %}{{ event.description_html|safe }}{% else %}{{ event.description|linebreaks }}{% endif %}</p>
             </div>
           </div>
         </div>
