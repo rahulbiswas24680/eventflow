@@ -18,29 +18,62 @@
         </li>
       </ul>
       <ul class="navbar-nav d-flex align-items-center">
-        
-        <!-- role_switcher.html -->
-        <div class="role-switcher shadow-sm">
-            <form method="post" action="{% url 'switch-role' %}" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.path }}">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0">
-                        Role
-                    </span>
-                    <select name="role_id" onchange="this.form.submit()" class="form-select form-select-sm border-start-0">
-                        <option value="">Switch Role...</option>
-                        {% for role in request.user.available_roles.all %}
-                            <option value="{{ role.id }}" 
-                                {% if request.user.current_role.id == role.id %}selected{% endif %}>
-                                {{ role.name|capfirst }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
-        </div>
+        {% if user.is_authenticated %}
+          {% if request.user.available_roles.all.count > 1 %}
+          <!-- Role Switcher - Show when user has 2+ roles -->
+          <div class="role-switcher shadow-sm">
+              <form method="post" action="{% url 'switch-role' %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light border-end-0">Role</span>
+                      <select name="role_id" onchange="this.form.submit()" class="form-select form-select-sm border-start-0">
+                          <option value="">Switch Role...</option>
+                          {% for role in request.user.available_roles.all %}
+                              <option value="{{ role.id }}" {% if request.user.current_role.id == role.id %}selected{% endif %}>
+                                  {{ role.name|capfirst }}
+                              </option>
+                          {% endfor %}
+                      </select>
+                  </div>
+              </form>
+          </div>
+          {% else %}
+          <!-- Become Organizer Button - Show when user has only 1 role -->
+          <button type="button" class="btn btn-sm btn-secondary" onclick="becomeOrganizer()">
+              Become an Organizer
+          </button>
+          {% endif %}
+        {% endif %}
       </ul>
     </div>
   </div>
 </nav>
+
+<script>
+
+
+
+function becomeOrganizer() {
+    fetch('{% url "become-organizer-api" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error || 'Something went wrong');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to become organizer. Please try again.');
+    });
+}
+</script>

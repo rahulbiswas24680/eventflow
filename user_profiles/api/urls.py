@@ -6,6 +6,7 @@ from .views import (
 
     OrganizersListCreateView,
     OrganizerDetailView,
+    become_organizer,
 )
 
 urlpatterns = [
@@ -32,4 +33,5 @@ urlpatterns = [
 
     path("organizers/", OrganizersListCreateView.as_view(), name="organizers-list"),
     path("organizers/<int:pk>/", OrganizerDetailView.as_view(), name="organizer-detail"),
+    path("become-organizer/", become_organizer, name="become-organizer-api"),
 ]

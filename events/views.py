@@ -229,7 +229,7 @@ def events_home(request):
     return render(request, "events/events_home.html", context)
 
 
-@login_required
+# @login_required
 def event_detail(request, event_id):
     event = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').get(id=event_id)
     images = event.images.all()

@@ -1,7 +1,9 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from ..models import CustomUser, UserRSVPHistory, Organizer
+from ..models import CustomUser, UserRSVPHistory, Organizer, Role
 from .serializers import (
     UserProfileSerializer,
     UserRSVPHistorySerializer,
@@ -65,3 +67,53 @@ class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Restrict to organizers owned by the requesting user
         return super().get_queryset().filter(user=self.request.user)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def become_organizer(request):
+    """
+    API endpoint to add Organizer role to user's available_roles
+    and create an Organizer profile if not exists.
+    """
+    user = request.user
+    
+    # Check if user already has organizer role
+    try:
+        organizer_role = Role.objects.get(name='organizer')
+    except Role.DoesNotExist:
+        return Response(
+            {'error': 'Organizer role not found. Please contact admin.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Add organizer role if not already in available_roles
+    if not user.available_roles.filter(id=organizer_role.id).exists():
+        user.available_roles.add(organizer_role)
+    
+    # Create organizer profile if not exists
+    organizer, created = Organizer.objects.get_or_create(
+        user=user,
+        defaults={
+            'organizer_name': user.get_full_name() or user.username,
+            'organizer_email': user.email,
+            'created_by': user,
+            'modified_by': user,
+        }
+    )
+    
+    # Set current_role to organizer if not set
+    if not user.current_role or user.current_role.name == 'attendee':
+        user.current_role = organizer_role
+        user.save(update_fields=['current_role'])
+    
+    if created:
+        return Response({
+            'success': True,
+            'message': 'Organizer profile created successfully!'
+        }, status=status.HTTP_201_CREATED)
+    else:
+        return Response({
+            'success': True,
+            'message': 'You are now an organizer!'
+        }, status=status.HTTP_200_OK)
