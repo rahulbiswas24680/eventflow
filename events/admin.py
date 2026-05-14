@@ -31,15 +31,15 @@ class TicketTypeAdmin(admin.ModelAdmin):
 
 @admin.register(apps.get_model('events', 'Event'))
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['name', 'organizer', 'start_date', 'venue', 'has_finished_event', 'created_at']
-    list_filter = ['has_finished_event', 'start_date', 'created_at']
-    search_fields = ['name', 'venue']
-    readonly_fields = ['created_at']
+    list_display = ['name', 'organizer', 'date', 'location', 'has_finished_event', 'created_at']
+    list_filter = ['has_finished_event', 'date', 'created_at']
+    search_fields = ['name', 'location']
+    readonly_fields = ['created_at', 'modified_at']
 
 
 @admin.register(apps.get_model('events', 'RSVP'))
 class RSVPAdmin(admin.ModelAdmin):
-    list_display = ['event', 'attendee', 'status', 'transaction_id', 'created_at']
-    list_filter = ['status', 'created_at']
+    list_display = ['event', 'attendee', 'is_active', 'is_cancelled', 'is_attended', 'transaction_id', 'created_at']
+    list_filter = ['is_active', 'is_cancelled', 'is_attended', 'created_at']
     search_fields = ['event__name', 'attendee__email', 'transaction_id']
     readonly_fields = ['created_at']

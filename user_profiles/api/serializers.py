@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from ..models import CustomUser, Organizer, UserRSVPHistory
+from ..models import CustomUser, Organizer
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +20,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "country",
         ]
         read_only_fields = ["id", "email", "username"]
+
 
 class OrganizerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,24 +49,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = "__all__"
         read_only_fields = ["id", "email", "username"]
-
-
-class UserRSVPHistorySerializer(serializers.ModelSerializer):
-    """
-    Basic serializer for UserRSVPHistory entries.
-    """
-    class Meta:
-        model = UserRSVPHistory
-        fields = "__all__"
-        read_only_fields = ["id", "created_at"]
-
-
-class UserRSVPHistoryDetailsSerializer(serializers.ModelSerializer):
-    """
-    Detailed serializer for UserRSVPHistory that can be extended with
-    nested representations (e.g., event details) if needed.
-    """
-    class Meta:
-        model = UserRSVPHistory
-        fields = "__all__"
-        read_only_fields = ["id", "created_at"]

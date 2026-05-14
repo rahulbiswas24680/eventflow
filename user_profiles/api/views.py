@@ -3,11 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..models import CustomUser, UserRSVPHistory, Organizer, Role
+from ..models import CustomUser, Organizer, Role
 from .serializers import (
     UserProfileSerializer,
-    UserRSVPHistorySerializer,
-    UserRSVPHistoryDetailsSerializer,
     OrganizerSerializer
 )
 
@@ -20,24 +18,6 @@ class UserProfileDetailView(generics.RetrieveAPIView):
     #     context = super().get_serializer_context()
     #     context.update({"user": self.request.user})
     #     return context
-
-
-class UserRSVPHistoryListCreateView(generics.ListCreateAPIView):
-    queryset = UserRSVPHistory.objects.all()
-    serializer_class = UserRSVPHistorySerializer
-
-    def get_queryset(self):
-        # Return RSVP history entries belonging to the authenticated user
-        return super().get_queryset().filter(user=self.request.user)
-
-
-class UserRSVPHistoryDetailView(generics.RetrieveAPIView):
-    queryset = UserRSVPHistory.objects.all()
-    serializer_class = UserRSVPHistoryDetailsSerializer
-
-    def get_queryset(self):
-        # Ensure the user can only access their own RSVP history details
-        return super().get_queryset().filter(user=self.request.user)
 
 
 class OrganizersListCreateView(generics.ListCreateAPIView):

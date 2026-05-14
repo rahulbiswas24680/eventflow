@@ -29,23 +29,6 @@ class CustomUser(AbstractUser):
         super().save(*args, **kwargs)
 
 
-class UserRSVPHistory(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, null=True, blank=True)
-    rsvp = models.ForeignKey(RSVP, on_delete=models.PROTECT, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'UserRSVPHistory'
-        verbose_name_plural = 'UserRSVPHistories'
-
-    def __str__(self):
-        return 'RSVP History - ' + self.user.email
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-
 class Organizer(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name='organizers')
     organizer_name = models.CharField(max_length=200, blank=True, null=True)
