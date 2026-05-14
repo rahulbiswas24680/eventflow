@@ -9,16 +9,13 @@ class TicketTypeAdmin(admin.ModelAdmin):
     list_filter = ['currency', 'created_at']
     search_fields = ['name', 'event__name']
     readonly_fields = ['stripe_price_id', 'created_at']
+    actions = ['recreate_stripe_prices']
     
     def stripe_price_id_status(self, obj):
         if obj.stripe_price_id:
             return format_html('<span style="color: green;">✓ Created</span>')
         return format_html('<span style="color: red;">✗ Missing</span>')
     stripe_price_id_status.short_description = 'Stripe Price'
-    
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        return actions
     
     def recreate_stripe_prices(self, request, queryset):
         from .tasks import create_stripe_product_for_ticket
