@@ -1,376 +1,242 @@
 {% extends "events/base.html" %}
-
-
 {% block content %}
 
-<div class="container-md py-3">
-  <h3 class="text-center my-3">RSVP Checkout</h3>
-
-  <div class="row">
-    <div class="col-lg-4 mb-4">
-      <div class="card shadow-sm m-3">
-        <div class="card-header bg-primary text-white">
-          Puchasing Tickets
-        </div>
-        <div class="card-body">
-          <div id="cart-boxes" class="mb-4"></div>
-          <div class="border-top pt-3 mt-3">
-            <!-- <div class="d-flex justify-content-between mb-2">
-              <span>Subtotal</span>
-              <span id="cart-subtotal" class="fw-bold">$0.00</span>
-            </div>
-            <div class="d-flex justify-content-between mb-3">
-              <span>Tax (18%)</span>
-              <span id="cart-tax">$0.00</span>
-            </div> -->
-            <div class="d-flex justify-content-between mb-4 fw-bold fs-5">
-              <span>Total</span>
-              <span id="cart-total">₹0.00</span>
-            </div>
-          </div>
+<div class="container py-3">
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="rounded-4 p-4" style="background: #fff;">
+        <h5 class="fw-bold mb-3"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+        <div id="cart-boxes"></div>
+        <hr class="my-3">
+        <div class="d-flex justify-content-between mb-3 fw-bold fs-5">
+          <span>Total</span>
+          <span id="cart-total">₹0.00</span>
         </div>
       </div>
     </div>
-    <div class="col-lg-8">
-      <section class="shadow-sm card m-3">
-        <div class="card-header bg-primary text-white">
-          Personal Details
-        </div>
-        <div class="card-body">
-          <form class="row g-3">
-            <div class="col-md-6">
-              <label for="inputEmail4" class="form-label">Email</label>
-              <input type="email" class="form-control" id="inputEmail4" placeholder="abc@example.com" required>
+
+    <div class="col-lg-7">
+      <div class="rounded-4 p-4" style="background: #fff;">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person me-2"></i>Personal Details</h5>
+        <form class="row g-3">
+          <div class="col-md-6">
+            <label for="inputEmail4" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="inputEmail4" placeholder="abc@example.com" required>
+          </div>
+          <div class="col-md-6">
+            <label for="inputPhone" class="form-label">Phone <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="inputPhone" pattern="[0-9]{10}" placeholder="7890212212" maxlength="10" required>
+          </div>
+          <div class="col-12">
+            <label for="inputAddress" class="form-label">Address <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="inputAddress" placeholder="1234 Main St" rows="2" required></textarea>
+          </div>
+          <div class="col-md-4">
+            <label for="inputState" class="form-label">State <span class="text-danger">*</span></label>
+            <select id="inputState" class="form-select" required>
+              <option value="">Choose...</option>
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label for="inputCity" class="form-label">City <span class="text-danger">*</span></label>
+            <select id="inputCity" class="form-select" required>
+              <option value="">Choose...</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="inputZip" class="form-label">Pincode <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="inputZip" placeholder="400001" maxlength="6" required>
+          </div>
+          <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pt-3 border-top">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+              <small class="text-muted">Secured by <strong>Stripe</strong></small>
             </div>
-            <div class="col-md-6">
-              <label for="inputPhone" class="form-label">Phone</label>
-              <input type="tel" class="form-control" id="inputPhone" pattern="[0-9]{10}" placeholder="7890212212..."
-                maxlength="10" required>
-            </div>
-            <div class="col-12">
-              <label for="inputAddress" class="form-label">Address 1</label>
-              <textarea class="form-control" id="inputAddress" placeholder="1234 Main St" required></textarea>
-            </div>
-            <div class="col-12">
-              <label for="inputAddress2" class="form-label">Address 2</label>
-              <textarea class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor"></textarea>
-            </div>
-            <div class="col-md-4">
-              <label for="inputState" class="form-label">State</label>
-              <select id="inputState" class="form-select" required>
-                <option selected>Choose...</option>
-                <option>...</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="inputCity" class="form-label">City</label>
-              <select id="inputCity" class="form-select" required>
-                <option selected>Choose...</option>
-                <option>...</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <label for="inputZip" class="form-label">Zip</label>
-              <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6" required>
-              
-            </div>
-            <!-- <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="gridCheck">
-                <label class="form-check-label" for="gridCheck">
-                  Check me out
-                </label>
-              </div>
-            </div> -->
-            <div
-              class="col-12 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3 py-3 border-top">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-shield-check text-success me-2"></i>
-                <small class="text-muted">Secured & Powered by <strong class="text-dark">Stripe</strong></small>
-              </div>
-              {% csrf_token %}
-              <meta name="csrf-token" content="{{ csrf_token }}">
-              <button id="checkoutBtn" type="submit" class="btn btn-primary px-5 d-flex align-items-center">
-                <span class="mx-auto">Pay Now<i class="bi bi-arrow-right-circle ms-2"></i></span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
+            {% csrf_token %}
+            <meta name="csrf-token" content="{{ csrf_token }}">
+            <button id="checkoutBtn" type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold">
+              Pay Now <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-
 </div>
 
-
 <script>
-  // load states 
-  $(document).ready(function () {
+$(document).ready(function () {
+  let cartData = null;
 
-    let cartData = null;
-
-    updateCartDisplay();
-    // Function to update cart display
-    function updateCartDisplay() {
-      $.ajax({
-        url: "{% url 'event-checkout' %}",   // <-- Django DRF endpoint
-        method: "GET",
-        success: function (data) {
-          // data = { event, tickets, total_cost }
-          console.log('data--', data);
-          // Update cart count
-          const totalItems = data.tickets.reduce((sum, item) => sum + item.quantity, 0);
-          $('#cart-count').text(totalItems);
-
-          // Calculate subtotal, tax (18%), and total
-          const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          // const tax = parseFloat((subtotal * 0.18).toFixed(2));
-          const tax = parseFloat(0);
-          const total = parseFloat((subtotal + tax).toFixed(2));
-
-          // Update cart summary UI
-          // $('#cart-subtotal').text(`₹${subtotal.toFixed(2)}`);
-          // $('#cart-tax').text(`₹${tax.toFixed(2)}`);
-          $('#cart-total').text(`₹${total.toFixed(2)}`);
-
-          // Render cart items
-          const $cartItems = $('#cart-boxes');
-          $cartItems.empty();
-          if (data.tickets.length === 0) {
-            $('#cart-empty').removeClass('d-none');
-          } else {
-            $('#cart-empty').addClass('d-none');
-            cartData = data.tickets;
-            data.tickets.forEach(item => {
-              const price = Number(item.price);
-              const itemHtml = `
-            <div class="cart-item bg-white p-3 mb-3 rounded-3 shadow-sm border" data-ticket-id="${item.id}">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <h6 class="mb-1 fw-semibold">${item.name}</h6>
-                  <p class="text-muted small mb-1">₹${price.toFixed(2)} × <span class="quantity">${item.quantity}</span></p>
-                  <small class="text-muted">Event: ${data.event.name}</small>
-                </div>
-                <div class="text-end">
-                  <div class="fw-bold text-primary mb-2">₹${(price * item.quantity).toFixed(2)}</div>
-                </div>
-              </div>
-            </div>`;
-              $cartItems.append(itemHtml);
-            });
-          }
-          console.log("Cart items after append:", $cartItems.children().length, $cartItems.html());
-
-
-          // Show event details
-          // $('#event-name').text(data.event.name);
-          // $('#event-date').text(new Date(data.event.date).toLocaleDateString());
-          // $('#event-location').text(data.event.location);
-
-          // Enable/disable checkout button
-          if (total > 0) {
-            $('#checkout-btn').removeClass('disabled');
-            $('#checkout-btn').attr('href', `/checkout/${data.event.id}/`);
-          } else {
-            $('#checkout-btn').addClass('disabled').attr('href', '#');
-          }
-        },
-        error: function () {
-          console.log('getting error');
-          // fallback if cart empty or API error
-          $('#cart-count').text(0);
-          // $('#cart-subtotal').text('$0.00');
-          // $('#cart-tax').text('$0.00');
-          $('#cart-total').text('$0.00');
-          $('#checkout-btn').addClass('disabled').attr('href', '#');
-          $('#cart-boxes').empty();
-          $('#cart-empty').removeClass('d-none');
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
         }
-      });
+      }
     }
+    return cookieValue;
+  }
 
+  function updateCartDisplay() {
+    $.ajax({
+      url: "{% url 'event-checkout' %}",
+      method: "GET",
+      success: function (data) {
+        const subtotal = data.tickets.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = parseFloat(subtotal.toFixed(2));
+        $('#cart-total').text('₹' + total.toFixed(2));
 
-    // Function to load states for a given country
-    function loadStates(countryName) {
-      $.ajax({
-        url: 'https://countriesnow.space/api/v0.1/countries/states',
-        type: 'POST',
-        contentType: 'application/json', // Important: tell server we're sending JSON
-        data: JSON.stringify({
-          country: countryName // e.g., "Nigeria"
-        }),
-        dataType: 'json',
-        success: function (response) {
-          if (!response.error) {
-            const $select = $('#inputState').empty().prop('disabled', false);
-            $select.append('<option value="">-- Select State --</option>'); // Default option
+        const $cartItems = $('#cart-boxes');
+        $cartItems.empty();
+        cartData = data.tickets;
 
-            // Loop through states and add as options
-            response.data.states.forEach(function (state) {
-              $select.append(
-                $('<option></option>').val(state.name).text(state.name)
-              );
-            });
-
-            console.log('States loaded successfully for', countryName);
-          } else {
-            console.error('Error:', response.msg);
-            alert('Failed to load states: ' + response.msg);
-          }
-        },
-        error: function (xhr, status, error) {
-          console.error('AJAX Error:', status, error);
-          alert('An error occurred while fetching states.');
+        if (data.tickets.length === 0) {
+          $cartItems.append('<p class="text-muted text-center py-3 mb-0">Your cart is empty</p>');
+          $('#checkoutBtn').prop('disabled', true);
+        } else {
+          $('#checkoutBtn').prop('disabled', false);
+          data.tickets.forEach(item => {
+            const price = Number(item.price);
+            const html = [
+              '<div class="d-flex justify-content-between align-items-start py-2 border-bottom">',
+                '<div>',
+                  '<h6 class="mb-0 small fw-semibold">' + item.name + '</h6>',
+                  '<small class="text-muted">Qty: ' + item.quantity + ' × ₹' + price.toFixed(2) + '</small>',
+                '</div>',
+                '<strong class="small">₹' + (price * item.quantity).toFixed(2) + '</strong>',
+              '</div>'
+            ].join('');
+            $cartItems.append(html);
+          });
         }
-      });
-    }
-
-    // Function to load cities for a given country and state
-    function loadCities(countryName, stateName) {
-      $.ajax({
-        url: 'https://countriesnow.space/api/v0.1/countries/state/cities',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-          country: countryName,
-          state: stateName
-        }),
-        dataType: 'json',
-        success: function (response) {
-          if (!response.error) {
-            const $select = $('#inputCity').empty().prop('disabled', false);
-            $select.append('<option value="">-- Select City --</option>');
-
-            response.data.forEach(function (cityName) {
-              $select.append(
-                $('<option></option>').val(cityName).text(cityName)
-              );
-            });
-
-            console.log('Cities loaded for', stateName);
-          } else {
-            alert('Failed to load cities: ' + response.msg);
-            $('#inputCity').prop('disabled', true);
-          }
-        },
-        error: function () {
-          alert('An error occurred while fetching cities.');
-          $('#inputCity').prop('disabled', true);
-        }
-      });
-    }
-
-
-    // Event: State changes
-    $('#inputState').on('change', function () {
-      const state = $(this).val();
-      const country = 'India';
-
-      if (state && country) {
-        $('#inputCity').prop('disabled', true).empty().append('<option value="">Loading...</option>');
-        loadCities(country, state);
-      } else {
-        $('#inputCity').prop('disabled', true).empty().append('<option value="">-- Select City --</option>');
+      },
+      error: function () {
+        $('#cart-total').text('₹0.00');
+        $('#checkoutBtn').prop('disabled', true);
+        $('#cart-boxes').html('<p class="text-muted text-center py-3 mb-0">Your cart is empty</p>');
       }
     });
+  }
 
-    // Load states for India
-    loadStates('India');
+  updateCartDisplay();
 
-    $("#checkoutBtn").on("click", function (e) {
-      e.preventDefault();
-
-      // Simple client‑side validation
-      const email = $('#inputEmail4').val().trim();
-      const phone = $('#inputPhone').val().trim();
-      const address = $('#inputAddress').val().trim();
-      const state = $('#inputState').val();
-      const city = $('#inputCity').val();
-      const zip = $('#inputZip').val().trim();
-
-      if (!email || !phone || !address || !state || !city || !zip) {
-        alert('Please fill in all required fields.');
-        return;
+  $.ajaxSetup({
+    beforeSend: function (xhr, settings) {
+      if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
       }
-
-      // Basic email format check
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(email)) {
-        alert("Please enter a valid email address.");
-        return;
-      }
-
-      // Phone pattern already enforced by input, but double‑check length
-      if (phone.length !== 10) {
-        alert('Phone number must be 10 digits.');
-        return;
-      }
-
-      // Zip pattern already enforced, but ensure 6 digits
-      if (!/^[1-9][0-9]{5}$/.test(zip)) {
-        alert('Please enter a valid 6‑digit PIN code.');
-        return;
-      }
-
-      $.ajax({
-        url: "/api/payments/ticket-checkout-session/",
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({
-          tickets: cartData.map(item => ({
-            ticket_id: item.id,
-            quantity: item.quantity
-          })),
-          // Optionally send customer details
-          email: email,
-          phone: phone,
-          address: address,
-          state: state,
-          city: city,
-          zip: zip
-        }),
-        success: function (data) {
-          // ✅ Redirect to Stripe Checkout
-          if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-          } else {
-            console.error("No checkout URL returned", data);
-          }
-        },
-        error: function (xhr, status, err) {
-          console.error("Checkout error:", err);
-          alert('An error occurred while processing your checkout. Please try again.');
-        },
-      });
-    });
-
-
-    // Get CSRF token from <meta> tag
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
-        }
-      }
-      return cookieValue;
     }
-    const csrftoken = getCookie('csrftoken');
+  });
 
-    // Add CSRF token to every jQuery AJAX request
-    $.ajaxSetup({
-      beforeSend: function (xhr, settings) {
-        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
-          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+  function loadStates(countryName) {
+    $.ajax({
+      url: 'https://countriesnow.space/api/v0.1/countries/states',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ country: countryName }),
+      dataType: 'json',
+      success: function (response) {
+        if (!response.error) {
+          const $select = $('#inputState').empty().prop('disabled', false);
+          $select.append('<option value="">-- Select State --</option>');
+          response.data.states.forEach(function (state) {
+            $select.append($('<option></option>').val(state.name).text(state.name));
+          });
         }
+      }
+    });
+  }
+
+  function loadCities(countryName, stateName) {
+    $.ajax({
+      url: 'https://countriesnow.space/api/v0.1/countries/state/cities',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ country: countryName, state: stateName }),
+      dataType: 'json',
+      success: function (response) {
+        if (!response.error) {
+          const $select = $('#inputCity').empty().prop('disabled', false);
+          $select.append('<option value="">-- Select City --</option>');
+          response.data.forEach(function (cityName) {
+            $select.append($('<option></option>').val(cityName).text(cityName));
+          });
+        }
+      }
+    });
+  }
+
+  $('#inputState').on('change', function () {
+    const state = $(this).val();
+    if (state) {
+      $('#inputCity').prop('disabled', true).empty().append('<option value="">Loading...</option>');
+      loadCities('India', state);
+    } else {
+      $('#inputCity').prop('disabled', true).empty().append('<option value="">-- Select City --</option>');
+    }
+  });
+
+  loadStates('India');
+
+  $("#checkoutBtn").on("click", function (e) {
+    e.preventDefault();
+    if ($(this).prop('disabled')) return;
+
+    if (!$('#inputEmail4')[0].checkValidity() || !$('#inputPhone')[0].checkValidity() || !$('#inputAddress')[0].checkValidity()) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    const state = $('#inputState').val();
+    const city = $('#inputCity').val();
+    const zip = $('#inputZip').val().trim();
+    if (!state || !city || !zip) {
+      alert('Please fill in all required fields.');
+      $('#checkoutBtn').prop('disabled', false).html('Pay Now <i class="bi bi-arrow-right ms-1"></i>');
+      return;
+    }
+
+    $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+
+    $.ajax({
+      url: "/api/payments/ticket-checkout-session/",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        tickets: cartData.map(item => ({
+          ticket_id: item.id,
+          quantity: item.quantity
+        })),
+        email: $('#inputEmail4').val().trim(),
+        phone: $('#inputPhone').val().trim(),
+        address: $('#inputAddress').val().trim(),
+        city: city,
+        state: state,
+        zip: zip
+      }),
+      success: function (data) {
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          console.error("No checkout URL returned", data);
+          alert('Something went wrong. Please try again.');
+          $('#checkoutBtn').prop('disabled', false).html('Pay Now <i class="bi bi-arrow-right ms-1"></i>');
+        }
+      },
+      error: function (xhr) {
+        console.error("Checkout error:", xhr.responseText);
+        alert('An error occurred. Please try again.');
+        $('#checkoutBtn').prop('disabled', false).html('Pay Now <i class="bi bi-arrow-right ms-1"></i>');
       }
     });
   });
+});
 </script>
 
 {% endblock %}

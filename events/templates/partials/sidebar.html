@@ -4,130 +4,99 @@
 
 
 <style>
-  
-/* ========================================================== */
-/* Sidebar base */
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: 250px;
+  width: var(--sidebar-width);
   background-color: #1C1C21 !important;
   overflow-y: auto;
-  transition: all 0.3s ease;
+  transition: width 0.3s ease;
   z-index: 1030;
 }
 
-/* Default state: Hide the short logo */
 .logo-short {
-    display: none;
-}
-
-/* When sidebar is NOT shrinked, make sure full logo is visible */
-.logo-full {
-    display: inline-block;
-}
-
-/* When sidebar is shrinked */
-#sidebar.shrinked .logo-full {
-    display: none;
-}
-
-#sidebar.shrinked .logo-short {
-    display: inline-block;
-    font-size: 1.8rem; /* Make it a bit bigger since it's alone */
-    font-weight: 800;
-    color: var(--eventflow-primary);
-}
-
-/* Ensure the brand container doesn't cause overflow in shrinked mode */
-#sidebar.shrinked .navbar-brand-custom {
-    width: 100%;
-    text-align: center;
-    padding: 0;
-    margin: 10px 0;
-}
-
-/* Shrinked sidebar */
-#sidebar.shrinked {
-  width: 80px;
-  background-color: #1C1C21 !important;
-}
-
-/* Hide text but keep icons centered */
-#sidebar.shrinked .sidebar-text {
   display: none;
 }
 
-#sidebar.shrinked .nav-link {
-  justify-content: center;
-  padding: 12px;
-  /* equal spacing */
+.logo-full {
+  display: inline-block;
 }
 
-/* Keep icons sized properly */
+.navbar-brand-custom {
+  transition: all 0.3s ease;
+}
+
+body.sidebar-collapsed .logo-full {
+  display: none;
+}
+
+body.sidebar-collapsed .logo-short {
+  display: inline-block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--eventflow-primary);
+}
+
+body.sidebar-collapsed .navbar-brand-custom {
+  width: 100%;
+  text-align: center;
+  padding: 0;
+  margin: 10px 0;
+}
+
+body.sidebar-collapsed .sidebar-text {
+  display: none;
+}
+
+body.sidebar-collapsed .nav-link {
+  justify-content: center;
+  padding: 12px;
+}
+
 .sidebar .nav-link i {
   font-size: 1.4rem;
   min-width: 24px;
   text-align: center;
   color: #fff;
-  /* icons remain white */
 }
 
-/* Hover and active styles (consistent in both states) */
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
 }
 
-/* Optional: make sure the shrinked version doesn’t stretch icons weird */
-#sidebar.shrinked .nav-link i {
+body.sidebar-collapsed .nav-link i {
   margin: 0;
 }
 
-/* When sidebar is shrinked */
-#sidebar.shrinked~.content {
-  margin-left: 80px;
-  width: calc(100% - 80px);
-}
-
-/* On smaller screens (mobile/tablet) */
-@media (max-width: 992px) {
-  .sidebar {
-    position: fixed;
-    width: 80px;
-    /* shrinked by default */
-    height: 100%;
-    z-index: 1030;
-  }
-
-  .content {
-    margin-left: 80px;
-    /* leave space for collapsed sidebar */
-    width: calc(100% - 80px);
-  }
-}
-
-/* Force collapsed sidebar on medium and smaller screens */
 @media (max-width: 992px) {
   #sidebar {
     width: 80px !important;
   }
-
   #sidebar .sidebar-text {
     display: none !important;
   }
-
-  .content {
-    margin-left: 80px !important;
-    width: calc(100% - 80px) !important;
+  #sidebar .logo-full {
+    display: none !important;
+  }
+  #sidebar .logo-short {
+    display: inline-block !important;
+  }
+  #sidebar .navbar-brand-custom {
+    width: 100%;
+    text-align: center;
+    padding: 0;
+    margin: 10px 0;
+  }
+  #sidebar .nav-link {
+    justify-content: center;
+    padding: 12px;
   }
 }
-
-
-/* ============================================================= */
 
 </style>
 

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Count, F, Q, Sum, OuterRef, Subquery, Value
+from django.db.models import Count, F, Min, Q, Sum, OuterRef, Subquery, Value, Max
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -310,7 +310,21 @@ def event_detail(request, event_id):
     event = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').get(id=event_id)
     images = event.images.all()
     tickets = event.tickettype_set.all()
-    context = {"event": event, "tickets": tickets, "images": images}
+
+    price_data = tickets.aggregate(min=Min('price'), max=Max('price'))
+    min_price = price_data['min'] or 0
+    max_price = price_data['max'] or 0
+
+    registered_count = RSVP.objects.filter(event=event, is_cancelled=False).count()
+
+    context = {
+        "event": event,
+        "tickets": tickets,
+        "images": images,
+        "min_price": min_price,
+        "max_price": max_price,
+        "registered_count": registered_count,
+    }
     return render(request, "events/event_detail.html", context)
 
 

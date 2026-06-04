@@ -29,13 +29,6 @@ def user_register(request):
             username=username,
             email=email,
             password=password,
-            phone=request.POST.get("phone", ""),
-            profession=request.POST.get("profession", ""),
-            education=request.POST.get("education", ""),
-            goal=request.POST.get("goal", ""),
-            languages=request.POST.get("languages", ""),
-            address=request.POST.get("address", ""),
-            country=request.POST.get("country", ""),
             current_role=role_obj
         )
         user.available_roles.add(role_obj)
