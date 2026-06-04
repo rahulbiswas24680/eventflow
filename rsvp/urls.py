@@ -53,6 +53,10 @@ api_urls = [
     path("support/", include("support.api.urls")),
 ]
 
+
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path("api/", include(api_urls)),
     path("admin/", admin.site.urls),
