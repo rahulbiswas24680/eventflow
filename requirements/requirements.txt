@@ -11,15 +11,11 @@ annotated-types==0.6.0
 anyio==4.2.0
     # via httpx
 asgiref==3.7.2
-<<<<<<< HEAD
     # via
     #   django
     #   django-cors-headers
-=======
-    # via django
 async-timeout==4.0.3
     # via redis
->>>>>>> 88a67000fbd074e9a023d46183cdf0e9b139f85a
 attrs==23.2.0
     # via
     #   jsonschema
@@ -89,7 +85,6 @@ djangorestframework-simplejwt==5.3.1
     # via -r ./requirements/requirements.in
 drf-spectacular==0.27.1
     # via -r ./requirements/requirements.in
-<<<<<<< HEAD
 factory-boy==3.3.0
     # via pytest-factoryboy
 faker==22.5.1
@@ -102,12 +97,10 @@ fonttools[woff]==4.61.1
     #   weasyprint
 flower==2.0.1
     # via -r ./requirements/requirements.in
-=======
 exceptiongroup==1.2.1
     # via
     #   anyio
     #   pytest
->>>>>>> 88a67000fbd074e9a023d46183cdf0e9b139f85a
 forex-python==1.8
     # via -r ./requirements/requirements.in
 gotrue==2.1.0
@@ -159,15 +152,10 @@ postgrest==0.15.0
     # via supabase
 prompt-toolkit==3.0.43
     # via click-repl
-<<<<<<< HEAD
 psycopg2-binary==2.9.9
     # via -r ./requirements/requirements.in
 pycparser==2.23
     # via cffi
-=======
-psycopg2==2.9.9
-    # via -r ./requirements/requirements.in
->>>>>>> 88a67000fbd074e9a023d46183cdf0e9b139f85a
 pydantic==2.5.3
     # via
     #   gotrue
@@ -240,17 +228,14 @@ supabase==2.3.4
     # via -r ./requirements/requirements.in
 supafunc==0.3.3
     # via supabase
-<<<<<<< HEAD
 tinycss2==1.5.1
     # via
     #   cssselect2
     #   weasyprint
 tinyhtml5==2.0.0
     # via weasyprint
-=======
 tomli==2.0.1
     # via pytest
->>>>>>> 88a67000fbd074e9a023d46183cdf0e9b139f85a
 typing-extensions==4.9.0
     # via
     #   anyio
