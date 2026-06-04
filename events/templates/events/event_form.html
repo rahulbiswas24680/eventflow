@@ -18,7 +18,7 @@
 
     .card-header {
         border-radius: 15px 15px 0 0 !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--eventflow-primary) 0%, var(--eventflow-primary-dark) 100%);
         padding: 2rem 2.5rem;
     }
 
@@ -27,7 +27,7 @@
     }
 
     .section-title {
-        color: #4dabf7;
+        color: var(--eventflow-primary);
         font-weight: 600;
         border-bottom: 2px solid #e9ecef;
         padding-bottom: 0.75rem;
@@ -59,7 +59,7 @@
     .input-group-text {
         background-color: #f8f9fa;
         border: none;
-        color: #667eea;
+        color: #F7931E;
         font-size: 1.1rem;
         padding: 0.75rem 1rem;
     }
@@ -72,8 +72,8 @@
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        border-color: #F7931E;
+        box-shadow: 0 0 0 0.25rem rgba(247, 147, 30, 0.25);
         transform: translateY(-1px);
     }
 
@@ -93,14 +93,14 @@
     }
 
     .custom-file-upload:hover {
-        border-color: #667eea;
+        border-color: #F7931E;
         background-color: #f0f4ff;
         transform: translateY(-2px);
     }
 
     .custom-file-upload i {
         font-size: 4rem;
-        color: #667eea;
+        color: #F7931E;
         margin-bottom: 1rem;
     }
 
@@ -153,8 +153,8 @@
     }
 
     .ticket-form:hover {
-        border-color: #667eea;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        border-color: #F7931E;
+        box-shadow: 0 5px 15px rgba(247, 147, 30, 0.1);
     }
 
     .remove-ticket-btn {
@@ -166,18 +166,18 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--eventflow-primary) 0%, var(--eventflow-primary-dark) 100%);
         border: none;
         padding: 0.75rem 2rem;
         font-weight: 600;
         border-radius: 10px;
         transition: all 0.3s;
-        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 10px rgba(247, 147, 30, 0.3);
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 15px rgba(247, 147, 30, 0.4);
     }
 
     .btn-outline-secondary {
@@ -187,8 +187,8 @@
     }
 
     .form-check-input:checked {
-        background-color: #667eea;
-        border-color: #667eea;
+        background-color: #F7931E;
+        border-color: #F7931E;
     }
 
     .form-switch .form-check-input {
@@ -209,7 +209,7 @@
     }
 
     .badge-info {
-        background: linear-gradient(135deg, #17a2b8, #20c997);
+        background: linear-gradient(135deg, var(--eventflow-primary), var(--eventflow-primary-dark));
         color: white;
         border-radius: 20px;
         padding: 0.35rem 0.75rem;
@@ -218,7 +218,7 @@
     }
 
     .badge-success {
-        background: linear-gradient(135deg, #28a745, #20c997);
+        background: linear-gradient(135deg, var(--eventflow-primary), var(--eventflow-primary-dark));
         color: white;
         border-radius: 20px;
         padding: 0.35rem 0.75rem;
@@ -247,7 +247,7 @@
     }
 
     .price-input .input-group-text {
-        background: linear-gradient(135deg, #20c997, #28a745);
+        background: var(--eventflow-primary);
         color: white;
         font-weight: 600;
     }
@@ -260,7 +260,7 @@
     }
 
 .stats-badge {
-        background: linear-gradient(135deg, #4dabf7, #339af0);
+        background: linear-gradient(135deg, var(--eventflow-primary), var(--eventflow-primary-dark));
         color: white;
         border-radius: 10px;
         padding: 0.5rem 1rem;
@@ -303,6 +303,35 @@
                 </div>
 
                 <div class="card-body p-5">
+                    {% if not event %}
+                    <div class="mb-4 px-2">
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            First time? <a href="https://wa.me/{{ admin_phone }}" target="_blank" class="text-decoration-none">Chat on WhatsApp</a> — I'll set up your event in 1 hour.
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="wizard-step active" data-step="1">
+                                <span class="step-number">1</span>
+                                <span class="step-label">Details</span>
+                            </div>
+                            <div class="flex-grow-1 mx-3" style="height: 2px; background: #e9ecef;">
+                                <div id="step-progress-1" style="width: 0%; height: 100%; background: var(--eventflow-primary); transition: width 0.3s ease;"></div>
+                            </div>
+                            <div class="wizard-step" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Tickets</span>
+                            </div>
+                            <div class="flex-grow-1 mx-3" style="height: 2px; background: #e9ecef;">
+                                <div id="step-progress-2" style="width: 0%; height: 100%; background: var(--eventflow-primary); transition: width 0.3s ease;"></div>
+                            </div>
+                            <div class="wizard-step" data-step="3">
+                                <span class="step-number">3</span>
+                                <span class="step-label">Publish</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Event Stats (for editing) -->
                     {% if event %}
                     <div class="d-flex flex-wrap gap-3 mb-4">
@@ -326,89 +355,89 @@
 
                         {% csrf_token %}
 
-                        <!-- Organizer Section -->
-                        <div class="mb-5">
-                            <h5 class="section-title">
-                                <i class="bi bi-building me-2"></i>Event Organizer
-                            </h5>
-                            <div class="row">
-                                <div class="col-lg-8">
-                                    <label for="organizer" class="form-label required-field">Select Organizer</label>
-                                    <div class="input-group mb-3">
-                                        <span class="input-group-text bg-primary text-white">
-                                            <i class="bi bi-building"></i>
+                        <!-- Step 1: Organizer + Event Details -->
+                        <div class="wizard-panel" id="step-1">
+                            <div class="mb-5">
+                                <h5 class="section-title">
+                                    <i class="bi bi-building me-2"></i>Event Organizer
+                                </h5>
+                                <div class="row">
+                                    <div class="col-lg-8">
+                                        <label for="organizer" class="form-label required-field">Select Organizer</label>
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text bg-primary text-white">
+                                                <i class="bi bi-building"></i>
+                                            </span>
+                                            <select class="form-control" id="organizer" name="organizer" required
+                                                data-bs-toggle="tooltip" title="Who is hosting this event?">
+                                                <option value="">-- Select an Organizer --</option>
+                                                {% for organizer in organizers %}
+                                                    <option value="{{ organizer.id }}"
+                                                        {% if event and event.organizer.id == organizer.id %}selected{% endif %}>
+                                                        {{ organizer.organizer_name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Select the organization that will host this event
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 d-flex align-items-end">
+                                        <a href="{% url 'organizer-create' %}" 
+                                           class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-plus-circle me-2"></i> New Organizer
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h5 class="section-title">
+                                    <i class="bi bi-info-circle me-2"></i>Event Details
+                                </h5>
+                                
+                                <div class="mb-4">
+                                    <label for="name" class="form-label required-field">Event Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-pencil text-primary"></i>
                                         </span>
-                                        <select class="form-control" id="organizer" name="organizer" required>
-                                            <option value="">-- Select an Organizer --</option>
-                                            {% for organizer in organizers %}
-                                                <option value="{{ organizer.id }}"
-                                                    {% if event and event.organizer.id == organizer.id %}selected{% endif %}>
-                                                    {{ organizer.organizer_name }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="form-text">
-                                        <i class="bi bi-info-circle me-1"></i>
-                                        Select the organization that will host this event
+                                        <input type="text" class="form-control" id="name" name="name" required
+                                            placeholder="e.g., TechFest 2026, Startup Pitch Night"
+                                            value="{{ event.name|default:'' }}"
+                                            data-bs-toggle="tooltip" title="Give your event a clear, searchable name">
                                     </div>
                                 </div>
-                                <div class="col-lg-4 d-flex align-items-end">
-                                    <a href="{% url 'organizer-create' %}" 
-                                       class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-plus-circle me-2"></i> New Organizer
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Event Details Section -->
-                        <div class="mb-5">
-                            <h5 class="section-title">
-                                <i class="bi bi-info-circle me-2"></i>Event Details
-                            </h5>
-                            
-                            <!-- Event Name -->
-                            <div class="mb-4">
-                                <label for="name" class="form-label required-field">Event Name</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-pencil text-primary"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="name" name="name" required
-                                        placeholder="Enter a catchy event name that attracts attendees"
-                                        value="{{ event.name|default:'' }}">
+                                <div class="mb-4">
+                                    <label for="description" class="form-label">Event Description</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-text-paragraph text-primary"></i>
+                                        </span>
+                                        <textarea class="form-control" id="description" name="description" rows="10"
+                                            placeholder="Describe your event in detail. What can attendees expect?">{% if event.description %}{{ event.description|escape }}{% endif %}</textarea>
+                                    </div>
+                                    <div class="form-text d-flex justify-content-between">
+                                        <span><i class="bi bi-markdown me-1"></i> Supports Markdown formatting</span>
+                                        <span id="char-count">0</span>/1000 characters
+                                    </div>
                                 </div>
-                            </div>
 
-<!-- Description -->
-                            <div class="mb-4">
-                                <label for="description" class="form-label">Event Description</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-text-paragraph text-primary"></i>
-                                    </span>
-                                    <textarea class="form-control" id="description" name="description" rows="10"
-                                        placeholder="Describe your event in detail. What can attendees expect?">{% if event.description %}{{ event.description|escape }}{% endif %}</textarea>
-                                </div>
-                                <div class="form-text d-flex justify-content-between">
-                                    <span><i class="bi bi-markdown me-1"></i> Supports Markdown formatting</span>
-                                    <span id="char-count">0</span>/1000 characters
-                                </div>
-                            </div>
-
-                            <!-- Date, Time & Location -->
-                            <div class="row mb-4">
-                                <div class="col-lg-6 mb-3">
-                                    <label for="date" class="form-label required-field">
-                                        <i class="bi bi-calendar-date me-1"></i>Date & Time
+                                <div class="row mb-4">
+                                    <div class="col-lg-6 mb-3">
+                                        <label for="date" class="form-label required-field">
+                                            <i class="bi bi-calendar-date me-1"></i>Date & Time
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="bi bi-clock text-primary"></i>
                                         </span>
                                         <input type="datetime-local" class="form-control" id="date" name="date" required
-                                            {% if event and event.date %}value="{{ event.date|date:'Y-m-d\TH:i' }}"{% endif %}>
+                                            {% if event and event.date %}value="{{ event.date|date:'Y-m-d\TH:i' }}"{% endif %}
+                                            data-bs-toggle="tooltip" title="When does your event start?">
                                     </div>
                                 </div>
                                 <div class="col-lg-6 mb-3">
@@ -421,7 +450,8 @@
                                         </span>
                                         <input type="text" class="form-control" id="location" name="location"
                                             placeholder="Enter event venue or virtual meeting link"
-                                            value="{{ event.location|default:'' }}">
+                                            value="{{ event.location|default:'' }}"
+                                            data-bs-toggle="tooltip" title="Physical address or video call link">
                                     </div>
                                 </div>
                             </div>
@@ -516,7 +546,10 @@
                             {% endif %}
                         </div>
 
-                        <!-- Tickets Section -->
+                        </div> <!-- /step-1 -->
+
+                        <!-- Step 2: Tickets -->
+                        <div class="wizard-panel d-none" id="step-2">
                         <div class="mb-5">
                             <h5 class="section-title">
                                 <i class="bi bi-ticket-perforated me-2"></i>Tickets
@@ -651,11 +684,43 @@
                             </div>
                         </div>
 
-                        <!-- Form Actions -->
-                        <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                        </div> <!-- /step-2 -->
+
+                        <!-- Step 3: Review & Publish -->
+                        <div class="wizard-panel d-none" id="step-3">
+                        <div class="mb-5">
+                            <h5 class="section-title">
+                                <i class="bi bi-check2-square me-2"></i>Review & Publish
+                            </h5>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Review your event details before publishing. You can always edit later.
+                            </div>
+                            <div class="card bg-light border-0 mb-4">
+                                <div class="card-body" id="review-summary">
+                                    <p class="text-muted mb-0"><i class="bi bi-arrow-repeat me-1"></i> Fill in Step 1 & 2 to see a preview.</p>
+                                </div>
+                            </div>
+                            <div class="switch-container">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
+                                        {% if event and event.is_published %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="is_published">
+                                        <i class="bi bi-megaphone me-2"></i> Publish immediately
+                                    </label>
+                                </div>
+                                <div class="form-text mt-2">
+                                    Make your event visible to attendees. Uncheck to save as draft.
+                                </div>
+                            </div>
+                        </div>
+                        </div> <!-- /step-3 -->
+
+                        <!-- Wizard Navigation -->
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top" id="wizard-nav">
                             <div>
-                                <button type="button" class="btn btn-outline-secondary" id="resetBtn">
-                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Form
+                                <button type="button" class="btn btn-outline-secondary d-none" id="prevBtn">
+                                    <i class="bi bi-arrow-left me-1"></i>Back
                                 </button>
                             </div>
                             <div class="d-flex gap-3">
@@ -663,7 +728,10 @@
                                    class="btn btn-outline-secondary px-4">
                                     <i class="bi bi-x-circle me-1"></i>Cancel
                                 </a>
-                                <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                                <button type="button" class="btn btn-primary px-4" id="nextBtn">
+                                    Next <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                                <button type="submit" class="btn btn-primary px-4 d-none" id="submitBtn">
                                     <i class="bi bi-check-circle me-2"></i>
                                     {% if event %}Update Event{% else %}Create Event{% endif %}
                                 </button>
@@ -700,7 +768,7 @@
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = '#667eea';
+        dropZone.style.borderColor = '#F7931E';
         dropZone.style.backgroundColor = '#f0f4ff';
         dropZone.style.transform = 'translateY(-2px)';
     });
@@ -753,6 +821,86 @@
     function removePreview(button) {
         button.closest('.image-preview-item').remove();
     }
+
+    // Wizard navigation
+    const isNewEvent = {{ event|yesno:"false,true" }};
+    let currentStep = 1;
+    const totalSteps = 3;
+
+    function showStep(step) {
+        for (let i = 1; i <= totalSteps; i++) {
+            const panel = document.getElementById('step-' + i);
+            if (panel) {
+                panel.classList.toggle('d-none', i !== step);
+            }
+            const dot = document.querySelector(`.wizard-step[data-step="${i}"]`);
+            if (dot) {
+                dot.classList.remove('active', 'completed');
+                if (i < step) dot.classList.add('completed');
+                if (i === step) dot.classList.add('active');
+            }
+            const progress = document.getElementById('step-progress-' + i);
+            if (progress) {
+                progress.style.width = i < step ? '100%' : '0%';
+            }
+        }
+        document.getElementById('prevBtn').classList.toggle('d-none', step === 1);
+        document.getElementById('nextBtn').classList.toggle('d-none', step === totalSteps);
+        document.getElementById('submitBtn').classList.toggle('d-none', step !== totalSteps);
+        if (!isNewEvent) {
+            document.getElementById('wizard-nav').classList.add('d-none');
+        }
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', function() {
+        if (currentStep < totalSteps) showStep(++currentStep);
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', function() {
+        if (currentStep > 1) showStep(--currentStep);
+    });
+
+    // Live review summary on step 3
+    function updateReview() {
+        const summary = document.getElementById('review-summary');
+        if (!summary) return;
+        const name = document.getElementById('name')?.value || '(not set)';
+        const date = document.getElementById('date')?.value || '(not set)';
+        const loc = document.getElementById('location')?.value || '(not set)';
+        const tickets = document.querySelectorAll('.ticket-form');
+        let ticketInfo = '';
+        if (tickets.length > 0) {
+            ticketInfo = '<ul class="mb-0 small">';
+            tickets.forEach(t => {
+                const n = t.querySelector('[name^="ticket_name_"]')?.value || 'Unnamed';
+                const p = t.querySelector('[name^="ticket_price_"]')?.value || '0';
+                const q = t.querySelector('[name^="ticket_quantity_"]')?.value || '0';
+                ticketInfo += `<li><strong>${n}</strong> — ₹${p} × ${q} tickets</li>`;
+            });
+            ticketInfo += '</ul>';
+        } else {
+            ticketInfo = '<span class="text-muted small">No tickets added</span>';
+        }
+        summary.innerHTML = `
+            <div class="row g-2 small">
+                <div class="col-sm-6"><strong>Event:</strong> ${name}</div>
+                <div class="col-sm-6"><strong>Date:</strong> ${date}</div>
+                <div class="col-sm-6"><strong>Location:</strong> ${loc || 'Not set'}</div>
+                <div class="col-12 mt-2"><strong>Tickets:</strong> ${ticketInfo}</div>
+            </div>
+        `;
+    }
+
+    ['name', 'date', 'location'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateReview);
+    });
+    document.addEventListener('input', function(e) {
+        if (e.target.name && e.target.name.startsWith('ticket_')) updateReview();
+    });
+
+    // Init
+    if (isNewEvent) showStep(1);
 
     // Ticket functionality
     let ticketIndex = {{ tickets|length|default:1 }};
@@ -930,5 +1078,10 @@
         // Initialize count
         charCount.textContent = description.value.length;
     }
+
+    // Initialize Bootstrap tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        try { new bootstrap.Tooltip(el); } catch(e) {}
+    });
  </script>
 {% endblock %}

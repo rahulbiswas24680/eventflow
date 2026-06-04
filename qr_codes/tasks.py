@@ -50,7 +50,7 @@ def generate_qr_code(self, transaction_id: str):
             border=2,
             dark="#2D3748",
             light="#F7FAFC",
-            data_dark="#425239",
+            data_dark="#F7931E",
         )
         img_buffer.seek(0)
         

@@ -1,5 +1,5 @@
 from celery import shared_task
-from django.db.models import Sum, Count, Q
+from django.db.models import F, Sum, Count, Q
 from django.utils import timezone
 from django.db import transaction
 
@@ -11,19 +11,19 @@ def update_event_analytics(event_id: str):
     Called via signal on RSVP/Transaction creation.
     """
     from events.models import RSVP, Event
+    from payments.models import Transaction
     from .models import EventAnalytics
     
     try:
         event = Event.objects.get(id=event_id)
         
-        rsvps = RSVP.objects.filter(event=event, is_active=True, is_cancelled=False)
+        total_rsvps = RSVP.objects.filter(event=event, is_cancelled=False).count()
+        total_revenue = Transaction.objects.filter(
+            ticket_type__event=event,
+            payment_status='SUCCESS'
+        ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
         
-        total_rsvps = rsvps.count()
-        total_revenue = rsvps.aggregate(
-            total=Sum('total_charge')
-        )['total'] or 0
-        
-        total_attended = rsvps.filter(is_attended=True).count()
+        total_attended = RSVP.objects.filter(event=event, is_attended=True).count()
         
         with transaction.atomic():
             analytics, created = EventAnalytics.objects.get_or_create(
@@ -63,24 +63,21 @@ def update_ticket_type_analytics(ticket_type_id: str):
     Tracks sales and remaining capacity.
     """
     from events.models import TicketType, RSVP
+    from payments.models import Transaction
     from .models import TicketTypeAnalytics
     
     try:
         ticket_type = TicketType.objects.get(id=ticket_type_id)
         
-        rsvps = RSVP.objects.filter(
-            transaction__ticket_type=ticket_type,
-            is_active=True,
-            is_cancelled=False
-        )
+        total_sold = Transaction.objects.filter(
+            ticket_type=ticket_type,
+            payment_status='SUCCESS'
+        ).aggregate(total=Sum('quantity'))['total'] or 0
         
-        total_sold = rsvps.aggregate(
-            total=Sum('ticket_qty')
-        )['total'] or 0
-        
-        total_revenue = rsvps.aggregate(
-            total=Sum('total_charge')
-        )['total'] or 0
+        total_revenue = Transaction.objects.filter(
+            ticket_type=ticket_type,
+            payment_status='SUCCESS'
+        ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
         
         remaining = ticket_type.quantity_available - total_sold
         
@@ -164,7 +161,7 @@ def daily_analytics_summary():
     total_revenue_today = Transaction.objects.filter(
         created_at__date=today,
         payment_status='SUCCESS'
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
     
     return {
         'date': str(today),

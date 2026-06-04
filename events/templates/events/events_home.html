@@ -3,174 +3,342 @@
 
 {% block content %}
 <style>
+    .hero-section {
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        color: white;
+        padding: 5rem 2rem 4rem;
+        border-radius: 20px;
+        margin-bottom: 2.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        background: radial-gradient(circle at 30% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        clip-path: inset(0 round 20px);
+    }
+
+    .hero-section > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-search-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .hero-search-wrapper .input-group {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        transition: border-color 0.3s;
+    }
+
+    .hero-search-wrapper .input-group:focus-within {
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    .hero-search-wrapper .input-group-text {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        padding-left: 1.25rem;
+    }
+
+    .hero-search-wrapper .form-control {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0.85rem 2.5rem 0.85rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    .hero-search-wrapper .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .hero-search-wrapper .form-control:focus {
+        box-shadow: none;
+    }
+
+    .search-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        max-height: 380px;
+        overflow-y: auto;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+        background: white;
+        z-index: 1060;
+    }
+
+    .search-dropdown .dropdown-item {
+        padding: 0.75rem 1rem;
+        transition: background 0.15s;
+        border-bottom: 1px solid #f1f3f5;
+        text-align: left;
+    }
+
+    .search-dropdown .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-dropdown .dropdown-item:hover {
+        background: #f8f9fa;
+    }
+
+    .search-dropdown .dropdown-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #868e96;
+        padding: 0.5rem 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .search-result-img {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+
+    .category-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        position: relative;
+        z-index: 0;
+    }
+
+    .category-pill {
+        padding: 6px 18px;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.25s;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        backdrop-filter: blur(4px);
+    }
+
+    .category-pill:hover {
+        background: rgba(99, 102, 241, 0.6);
+        border-color: rgba(99, 102, 241, 0.8);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
     .carousel-image {
-        height: 400px;
+        height: 420px;
         object-fit: cover;
     }
-    
+
+    .carousel-caption {
+        background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.85) 100%);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: left;
+    }
+
+    .event-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.25s, box-shadow 0.25s;
+        background: white;
+        height: 100%;
+    }
+
+    .event-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
     .event-card-image {
         height: 200px;
         object-fit: cover;
     }
-    
-    .card {
-        transition: transform 0.2s;
+
+    .event-card .card-body {
+        padding: 1.25rem;
     }
-    
-    .card:hover {
-        transform: translateY(-5px);
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
     }
-    
+
+    .section-header h4 {
+        font-weight: 700;
+        margin: 0;
+    }
+
     .empty-state {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         border-radius: 20px;
-        padding: 3rem 2rem;
-        margin: 2rem 0;
+        padding: 3.5rem 2rem;
         text-align: center;
         border: 2px dashed #dee2e6;
     }
-    
+
     .empty-state-icon {
         font-size: 4rem;
-        color: #6c757d;
-        margin-bottom: 1.5rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
     }
-    
-    .event-categories {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 1.5rem 0;
-        justify-content: center;
-    }
-    
-    .category-badge {
-        padding: 8px 20px;
+
+    .price-tag {
+        background: rgba(99, 102, 241, 0.1);
+        color: #4f46e5;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 2px 10px;
         border-radius: 50px;
-        background: #f1f3f5;
-        border: 2px solid #e9ecef;
-        color: #495057;
-        font-weight: 500;
-        transition: all 0.3s;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
     }
-    
-    .category-badge:hover {
-        background: #4dabf7;
-        color: white;
-        border-color: #339af0;
-        transform: translateY(-2px);
-        text-decoration: none;
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2.5rem;
     }
-    
-    .hero-section {
-        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-                    url('https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
-        background-size: cover;
-        background-position: center;
-        color: white;
-        padding: 4rem 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
         text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f3f5;
+    }
+
+    .stat-card .stat-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e1e2f;
+        line-height: 1.2;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.8rem;
+        color: #868e96;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 </style>
 
 <section class="container py-3">
     <!-- Hero Section -->
     <div class="hero-section">
-        <h1 class="display-5 fw-bold mb-3">Discover Amazing Events</h1>
-        <p class="lead mb-4">Connect with people, learn new things, and create unforgettable memories</p>
-        
-        <!-- Search Section -->
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
-                <div class="search-container position-relative">
-                    <div class="position-relative">
-                        <input type="text" id="event-search" 
-                            class="form-control form-control-lg"
-                            placeholder="Search events by name, category, or location...">
-                        <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-muted">
-                            <i class="fas fa-search fs-5"></i>
-                        </span>
-                        
-                        <!-- Loader -->
-                        <div id="search-loader" class="position-absolute start-0 mt-1 ms-2 d-none">
-                            <div class="spinner-border text-light" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
-                        </div>
-                        
-                        <!-- Dropdown -->
-                        <div id="event-dropdown" class="dropdown-menu w-100 shadow-lg hide" 
-                            data-bs-popper="static"
-                            style="max-height: 300px; overflow-y: auto; position: absolute; inset: 0px auto auto 0px; margin: 10px 0; transform: translate(0px, 38px);"></div>
-                    </div>
+        <h1 class="display-5 fw-bold mb-2">Discover events that matter to you</h1>
+        <p class="lead mb-4 opacity-75">Tech meetups, music fests, workshops & more — all in one place.</p>
+
+        <div class="hero-search-wrapper position-relative">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="event-search" class="form-control" placeholder="Search events by name, category, or location..." autocomplete="off">
+                <div id="search-loader" class="d-none position-absolute end-0 top-50 translate-middle-y" style="right: 1rem !important;">
+                    <div class="spinner-border spinner-border-sm text-white-50" role="status"></div>
                 </div>
             </div>
+            <div id="event-dropdown" class="search-dropdown d-none"></div>
         </div>
-        
-        <!-- Popular Categories -->
-        <div class="event-categories mt-4">
-            <a href="#" class="category-badge">Music</a>
-            <a href="#" class="category-badge">Technology</a>
-            <a href="#" class="category-badge">Business</a>
-            <a href="#" class="category-badge">Arts</a>
-            <a href="#" class="category-badge">Sports</a>
-            <a href="#" class="category-badge">Food</a>
-        </div>
-    </div>
 
-    <!-- Upcoming Events Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">
-            <i class="bi bi-calendar2-check text-primary me-2"></i>
-            Upcoming Events
-        </h4>
-        {% if events %}
-        <a href="#" class="btn btn-outline-secondary btn-sm">
-            View All <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-        {% endif %}
+        <div class="category-pills mt-4">
+            <a href="{% url 'events-list' %}?category=Music" class="category-pill">Music</a>
+            <a href="{% url 'events-list' %}?category=Technology" class="category-pill">Technology</a>
+            <a href="{% url 'events-list' %}?category=Business" class="category-pill">Business</a>
+            <a href="{% url 'events-list' %}?category=Arts" class="category-pill">Arts</a>
+            <a href="{% url 'events-list' %}?category=Sports" class="category-pill">Sports</a>
+            <a href="{% url 'events-list' %}?category=Food" class="category-pill">Food</a>
+            <a href="{% url 'events-list' %}?category=Education" class="category-pill">Education</a>
+        </div>
     </div>
 
     {% if events %}
-    <!-- Upcoming Events Carousel -->
-    <div id="upcomingEventsCarousel" class="carousel slide my-4 shadow-lg rounded-3 overflow-hidden" data-bs-ride="carousel">
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_events }}</div>
+            <div class="stat-label">Live Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.category_count }}</div>
+            <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.free_events }}</div>
+            <div class="stat-label">Free Entry</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{% if stats.min_price == 0 %}Free{% else %}₹{{ stats.min_price|floatformat:0 }}{% endif %}</div>
+            <div class="stat-label">Starting From</div>
+        </div>
+    </div>
+
+    <!-- Featured Events Carousel -->
+    <div class="section-header">
+        <h4><i class="bi bi-star-fill text-warning me-2"></i>Featured Events</h4>
+        <a href="{% url 'events-list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">View All <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+
+    <div id="upcomingEventsCarousel" class="carousel slide mb-5 rounded-4 overflow-hidden shadow" data-bs-ride="carousel">
         <div class="carousel-indicators">
-            {% for event in events %}
-            <button type="button" data-bs-target="#upcomingEventsCarousel" 
-                    data-bs-slide-to="{{ forloop.counter0 }}" 
-                    {% if forloop.first %}class="active" aria-current="true"{% endif %} 
-                    aria-label="Slide {{ forloop.counter }}"></button>
+            {% for event in events|slice:":5" %}
+            <button type="button" data-bs-target="#upcomingEventsCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
             {% endfor %}
         </div>
-        
         <div class="carousel-inner">
-            {% for event in events %}
+            {% for event in events|slice:":5" %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
                 {% if event.images.all %}
                     <img src="{{ event.images.first.image.url }}" class="d-block w-100 carousel-image" alt="{{ event.name }}">
                 {% else %}
                     <img src="https://images.pexels.com/photos/15448073/pexels-photo-15448073.jpeg" class="d-block w-100 carousel-image" alt="{{ event.name }}">
                 {% endif %}
-                <div class="carousel-caption d-flex flex-column justify-content-end h-100 p-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-light text-dark me-2">{{ event.category }}</span>
+                <div class="carousel-caption">
+                    <span class="badge bg-white text-dark mb-2">{{ event.metadata.category|default:"Event" }}</span>
+                    <h3 class="mb-1 fw-bold">{{ event.name }}</h3>
+                    <p class="mb-2 opacity-75 d-none d-md-block">{{ event.description|truncatewords:25 }}</p>
+                    <div class="d-flex align-items-center gap-3 mb-2 small">
+                        <span><i class="fas fa-calendar-alt me-1"></i>{{ event.date|date:"M j, Y" }}</span>
+                        <span><i class="fas fa-map-marker-alt me-1"></i>{{ event.location|truncatechars:25 }}</span>
                     </div>
-                    <h3 class="mb-2">{{ event.name }}</h3>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span class="me-3">{{ event.date|date:"F j, Y" }}</span>
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        <span>{{ event.location }}</span>
-                    </div>
-                    <a href="{% url 'event-detail' event.id %}" class="btn btn-light align-self-start">View Details</a>
+                    <a href="{% url 'event-detail' event.id %}" class="btn btn-light btn-sm rounded-pill px-4">View Details</a>
                 </div>
             </div>
             {% endfor %}
         </div>
-
         <button class="carousel-control-prev" type="button" data-bs-target="#upcomingEventsCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -180,46 +348,23 @@
             <span class="visually-hidden">Next</span>
         </button>
     </div>
-    {% else %}
-    <!-- Empty State for Upcoming Events -->
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <i class="bi bi-calendar-x"></i>
-        </div>
-        <h3 class="mb-3">No Upcoming Events</h3>
-        <p class="text-muted mb-4">You don't have any events coming up. Discover events below or create your own!</p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{% url 'event-list' %}" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i> Browse Events
-            </a>
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- Recent Events Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
-        <h4 class="fw-bold mb-0">
-            <i class="bi bi-clock-history text-primary me-2"></i>
-            Popular Events
-        </h4>
-        {% if events %}
-        <a href="#" class="btn btn-outline-secondary btn-sm">View All <i class="bi bi-arrow-right ms-1"></i></a>
-        {% endif %}
+    <!-- Popular Events Grid -->
+    <div class="section-header">
+        <h4><i class="bi bi-fire text-danger me-2"></i>Popular Events</h4>
+        <a href="{% url 'events-list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">View All <i class="bi bi-arrow-right ms-1"></i></a>
     </div>
 
-    {% if events %}
-    <!-- Recent Events Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
         {% for event in events|slice:":6" %}
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <!-- Event Images Carousel -->
+            <div class="event-card shadow-sm">
                 {% if event.images.all %}
-                <div id="eventImagesControls{{ event.id }}" class="carousel slide">
+                <div id="eventImagesControls{{ event.id }}" class="carousel slide" data-bs-interval="false">
                     <div class="carousel-inner">
                         {% for img in event.images.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <img src="{{ img.image.url }}" class="card-img-top d-block w-100 event-card-image" alt="{{ event.name }}">
+                            <img src="{{ img.image.url }}" class="d-block w-100 event-card-image" alt="{{ event.name }}">
                         </div>
                         {% endfor %}
                     </div>
@@ -240,107 +385,81 @@
 
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0">{{ event.name|truncatechars:40 }}</h5>
-                        <span class="badge bg-primary">{{ event.category|slice:":10" }}</span>
+                        <h5 class="card-title mb-0 fw-semibold">{{ event.name|truncatechars:40 }}</h5>
                     </div>
-                    <p class="card-text text-muted small flex-grow-1">{{ event.description|truncatewords:20 }}</p>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-calendar-alt text-primary me-2"></i>
-                            <small>{{ event.date|date:"M j, Y, g:i a" }}</small>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">{{ event.metadata.category|default:"General" }}</span>
+                        {% with prices=event.tickettype_set.all %}
+                            {% if prices %}
+                            <span class="price-tag">
+                                {% with min_price=prices.0.price %}
+                                    {% if prices|length > 1 %}
+                                        ₹{{ min_price|floatformat:0 }}+
+                                    {% else %}
+                                        {% if min_price == 0 %}Free{% else %}₹{{ min_price|floatformat:0 }}{% endif %}
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <p class="card-text text-muted small flex-grow-1">{{ event.description|truncatewords:18 }}</p>
+
+                    <div class="mb-3 small text-muted">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="fas fa-calendar-alt text-primary me-2" style="width: 14px;"></i>
+                            <span>{{ event.date|date:"M j, Y, g:i a" }}</span>
                         </div>
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                            <small>{{ event.location|truncatechars:30 }}</small>
+                            <i class="fas fa-map-marker-alt text-danger me-2" style="width: 14px;"></i>
+                            <span>{{ event.location|truncatechars:30 }}</span>
                         </div>
                     </div>
-                    
-                    <div class="pt-3 border-top">
-                        <a href="{% url 'event-detail' event.id %}" class="btn btn-dark w-100 py-3">
-                            <i class="bi bi-eye me-2"></i> View Event Details
-                        </a>
-                    </div>
+
+                    <a href="{% url 'event-detail' event.id %}" class="btn btn-dark w-100 rounded-pill py-2 mt-auto">
+                        <i class="bi bi-eye me-2"></i> View Details
+                    </a>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-    
-    <div class="text-center mt-3">
-        <a href="#" class="btn btn-outline-secondary px-4">
-            <i class="bi bi-grid-3x3-gap me-2"></i> View All Events
+
+    <div class="text-center mt-2 mb-4">
+        <a href="{% url 'events-list' %}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
+            <i class="bi bi-grid-3x3-gap me-2"></i> Browse All Events
         </a>
     </div>
+
     {% else %}
-    <!-- Empty State for Recent Events -->
+    <!-- Empty State -->
     <div class="empty-state">
         <div class="empty-state-icon">
             <i class="bi bi-calendar2-event"></i>
         </div>
-        <h3 class="mb-3">No Events Yet</h3>
-        <p class="text-muted mb-4">Start exploring events or be the first to create one!</p>
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center p-4">
-                                <i class="bi bi-search text-primary fs-1 mb-3"></i>
-                                <h5>Browse Events</h5>
-                                <p class="text-muted small">Discover exciting events happening around you</p>
-                                <a href="{% url 'event-list' %}" class="btn btn-outline-primary btn-sm mt-2">Explore</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center p-4">
-                                <i class="bi bi-activity text-success fs-1 mb-3"></i>
-                                <h5>Watch Our Stats</h5>
-                                <p class="text-muted small">Here you can watch all participated events overview</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <h3 class="mb-2 fw-bold">No Events Yet</h3>
+        <p class="text-muted mb-4">There are no upcoming events right now. Check back later or explore the dashboard.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            {% if user.is_authenticated %}
+            <button type="button" class="btn btn-dark rounded-pill px-4" onclick="becomeOrganizer()">
+                <i class="bi bi-person-plus me-2"></i> Become an Organizer
+            </button>
+            {% else %}
+            <a href="{% url 'user-register' %}" class="btn btn-dark rounded-pill px-4">
+                <i class="bi bi-person-plus me-2"></i> Register as Organizer
+            </a>
+            {% endif %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-activity me-2"></i> Go to Dashboard
+            </a>
         </div>
     </div>
     {% endif %}
 </section>
 
-<!-- Stats Section -->
-<div class="container mt-5 mb-4">
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-people text-primary fs-1 mb-3"></i>
-                    <h3 class="display-6 fw-bold">1,200+</h3>
-                    <p class="text-muted">Active Members</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-calendar2-heart text-success fs-1 mb-3"></i>
-                    <h3 class="display-6 fw-bold">150+</h3>
-                    <p class="text-muted">Events This Month</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-award text-warning fs-1 mb-3"></i>
-                    <h3 class="display-6 fw-bold">85%</h3>
-                    <p class="text-muted">Satisfaction Rate</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<form method="post" class="d-none">{% csrf_token %}</form>
 
 {% endblock %}
 
@@ -360,83 +479,75 @@
                 const searchTerm = $searchInput.val().trim();
 
                 if (!searchTerm) {
-                    $dropdown.removeClass('show').empty();
+                    $dropdown.addClass('d-none').empty();
                     return;
                 }
 
                 $loader.removeClass('d-none');
 
-$.ajax({
-                    url: `{% url 'event-list' %}?search=${encodeURIComponent(searchTerm)}`,
+                $.ajax({
+                    url: '{% url "event-list" %}?search=' + encodeURIComponent(searchTerm),
                     type: "GET",
                     success: function (data) {
                         $loader.addClass('d-none');
                         $dropdown.empty();
-                        
-                        // Handle DRF paginated response format
+
                         const events = data.results || data;
-                        
+
                         if (!events || events.length === 0) {
                             $dropdown
-                                .addClass('show')
+                                .removeClass('d-none')
                                 .html(`
-                                    <div class="dropdown-item">
-                                        <div class="text-center py-3">
-                                            <i class="bi bi-search text-muted fs-4 mb-2"></i>
-                                            <p class="mb-0 text-muted">No events found for "${searchTerm}"</p>
-                                            <small class="text-muted">Try a different keyword</small>
-                                        </div>
+                                    <div class="py-3 px-3">
+                                        <p class="mb-1 text-muted"><i class="bi bi-search me-2"></i>No events found for "${searchTerm}"</p>
+                                        <small class="text-muted">Try a different keyword</small>
                                     </div>
                                 `);
                             return;
                         }
-                        
-                        // Add header
+
                         $dropdown.append(`
-                            <div class="dropdown-header text-muted small px-3 py-2">
-                                Found ${events.length} event${events.length !== 1 ? 's' : ''}
+                            <div class="dropdown-header">
+                                <i class="bi bi-grid-3x3-gap me-1"></i>
+                                ${events.length} event${events.length !== 1 ? 's' : ''} found
                             </div>
                         `);
-                        
+
                         events.forEach(event => {
-                            const eventImage = event.images && event.images[0] ? event.images[0].image : 'https://via.placeholder.com/50';
+                            const eventImage = event.images && event.images[0] ? event.images[0].image : 'https://images.pexels.com/photos/15448073/pexels-photo-15448073.jpeg?w=100';
+                            const cat = event.metadata && event.metadata.category ? event.metadata.category : 'Event';
                             const item = `
-                                <a href="/event/${event.id}" class="dropdown-item py-3 border-bottom">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-shrink-0">
-                                            <img src="${eventImage}"
-                                                 class="rounded me-3" width="60" height="60" 
-                                                 style="object-fit: cover;" alt="${event.name}">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="fw-bold text-dark">${event.name}</div>
-                                            
-                                            <div class="mt-1">
-                                                <span class="text-muted small">
-                                                    <i class="fas fa-map-marker-alt me-1"></i>${event.location || 'Unknown location'}
+                                <a href="/event/${event.id}" class="dropdown-item">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="${eventImage}" class="search-result-img" alt="${event.name}">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <div class="fw-semibold text-dark text-truncate small">${event.name}</div>
+                                            <div class="d-flex align-items-center gap-2 mt-1">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary fw-normal" style="font-size: 0.65rem;">${cat}</span>
+                                                <span class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>${event.location || 'Unknown'}
                                                 </span>
-                                                <span class="badge bg-light text-dark me-1">
-                                                    <i class="fas fa-calendar-alt me-1"></i>
-                                                    ${new Date(event.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                                                <span class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-calendar-alt me-1"></i>${new Date(event.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
                                                 </span>
                                             </div>
                                         </div>
+                                        <i class="bi bi-chevron-right text-muted" style="font-size: 0.75rem;"></i>
                                     </div>
                                 </a>
                             `;
                             $dropdown.append(item);
                         });
-                        
-                        $dropdown.addClass('show');
+
+                        $dropdown.removeClass('d-none');
                     },
                     error: function () {
                         $loader.addClass('d-none');
                         $dropdown
-                            .addClass('show')
+                            .removeClass('d-none')
                             .html(`
-                                <div class="dropdown-item text-center py-3">
-                                    <i class="bi bi-exclamation-triangle text-danger fs-4 mb-2"></i>
-                                    <p class="mb-0 text-danger">Something went wrong</p>
+                                <div class="py-3 px-3">
+                                    <p class="mb-1 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Something went wrong</p>
                                     <small class="text-muted">Please try again later</small>
                                 </div>
                             `);
@@ -445,19 +556,55 @@ $.ajax({
             }, 400);
         });
 
-        // Close dropdown when clicking outside
         $(document).on('click', function (e) {
-            if (!$(e.target).closest('.search-container').length) {
-                $dropdown.removeClass('show').empty();
+            if (!$(e.target).closest('.hero-search-wrapper').length) {
+                $dropdown.addClass('d-none').empty();
             }
         });
 
-        // Category badges click event
-        $('.category-badge').on('click', function(e) {
+        $('.category-pill').on('click', function (e) {
             e.preventDefault();
             const category = $(this).text().trim();
-            $searchInput.val(category).trigger('input');
+            window.location.href = '{% url "events-list" %}?category=' + encodeURIComponent(category);
         });
     });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function becomeOrganizer() {
+        fetch('{% url "become-organizer-api" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || 'Something went wrong');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to become organizer. Please try again.');
+        });
+    }
 </script>
 {% endblock %}

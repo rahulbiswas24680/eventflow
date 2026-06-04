@@ -57,8 +57,7 @@ def become_organizer(request):
     and create an Organizer profile if not exists.
     """
     user = request.user
-    
-    # Check if user already has organizer role
+
     try:
         organizer_role = Role.objects.get(name='organizer')
     except Role.DoesNotExist:
@@ -66,34 +65,37 @@ def become_organizer(request):
             {'error': 'Organizer role not found. Please contact admin.'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
-    # Add organizer role if not already in available_roles
-    if not user.available_roles.filter(id=organizer_role.id).exists():
+
+    has_role = user.available_roles.filter(id=organizer_role.id).exists()
+    existing_profile = Organizer.objects.filter(user=user).first()
+
+    if has_role and existing_profile:
+        return Response({
+            'success': True,
+            'message': 'You are already an organizer!',
+        }, status=status.HTTP_200_OK)
+
+    if not has_role:
         user.available_roles.add(organizer_role)
-    
-    # Create organizer profile if not exists
-    organizer, created = Organizer.objects.get_or_create(
-        user=user,
-        defaults={
-            'organizer_name': user.get_full_name() or user.username,
-            'organizer_email': user.email,
-            'created_by': user,
-            'modified_by': user,
-        }
-    )
-    
-    # Set current_role to organizer if not set
+
+    if not existing_profile:
+        Organizer.objects.create(
+            user=user,
+            organizer_name=user.get_full_name() or user.username,
+            organizer_email=user.email,
+            created_by=user,
+            modified_by=user,
+        )
+    elif Organizer.objects.filter(user=user).count() > 1:
+        orgs = Organizer.objects.filter(user=user).order_by('id')
+        for org in orgs[1:]:
+            org.delete()
+
     if not user.current_role or user.current_role.name == 'attendee':
         user.current_role = organizer_role
         user.save(update_fields=['current_role'])
-    
-    if created:
-        return Response({
-            'success': True,
-            'message': 'Organizer profile created successfully!'
-        }, status=status.HTTP_201_CREATED)
-    else:
-        return Response({
-            'success': True,
-            'message': 'You are now an organizer!'
-        }, status=status.HTTP_200_OK)
+
+    return Response({
+        'success': True,
+        'message': 'You are now an organizer!',
+    }, status=status.HTTP_200_OK)

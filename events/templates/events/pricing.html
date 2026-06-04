@@ -1,0 +1,150 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}Pricing — EventFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-6 fw-bold" style="color: var(--eventflow-dark-text);">Simple, transparent pricing</h1>
+        <p class="lead text-muted">No commission. No hidden fees. No surprise charges.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-4 col-md-6">
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h5 class="fw-bold mb-0" style="color: var(--eventflow-dark-text);">Free</h5>
+                    <p class="text-muted small mb-0">Your first event</p>
+                </div>
+                <div class="pricing-body text-center">
+                    <div class="price mb-1">₹0</div>
+                    <p class="text-muted small mb-3">One event. All features.</p>
+                    <ul class="list-unstyled text-start small mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Unlimited tickets</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> QR code check-in</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> WhatsApp support</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> CSV exports</li>
+                        <li class="text-muted"><i class="bi bi-dash me-2"></i>White labeling</li>
+                    </ul>
+                    <a href="https://wa.me/{{ admin_phone }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-whatsapp me-2"></i>Claim free event
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="pricing-card featured">
+                <div class="pricing-header">
+                    <span class="badge bg-light text-dark mb-2">Most popular</span>
+                    <h5 class="fw-bold mb-0">Standard</h5>
+                    <p class="small mb-0 opacity-75">For regular organisers</p>
+                </div>
+                <div class="pricing-body text-center">
+                    <div class="price mb-1">₹15,000</div>
+                    <p class="text-muted small mb-3">Per event. No commission.</p>
+                    <ul class="list-unstyled text-start small mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Unlimited tickets</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> QR code check-in</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Priority WhatsApp support</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> CSV exports</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Custom fields</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Sales dashboard</li>
+                        <li class="text-muted"><i class="bi bi-dash me-2"></i>White labeling</li>
+                    </ul>
+                    <a href="https://wa.me/{{ admin_phone }}" class="btn btn-eventflow w-100">
+                        <i class="bi bi-whatsapp me-2"></i>Get started
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h5 class="fw-bold mb-0" style="color: var(--eventflow-dark-text);">White Label</h5>
+                    <p class="text-muted small mb-0">Your brand, your domain</p>
+                </div>
+                <div class="pricing-body text-center">
+                    <div class="price mb-1">₹20,000</div>
+                    <p class="text-muted small mb-3">Per event + custom branding</p>
+                    <ul class="list-unstyled text-start small mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Everything in Standard</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Your logo + colors</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Your domain/subdomain</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> No "Powered by" branding</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill me-2" style="color: var(--eventflow-primary);"></i> Dedicated support</li>
+                    </ul>
+                    <a href="https://wa.me/{{ admin_phone }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-whatsapp me-2"></i>Talk to me
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4" style="background: #fff; border-radius: 12px;">
+                    <h5 class="fw-bold mb-4 text-center" style="color: var(--eventflow-dark-text);">EventFlow vs Townscript / Explara</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered small mb-0">
+                            <thead style="background: var(--eventflow-light-gray);">
+                                <tr>
+                                    <th style="width: 30%;"></th>
+                                    <th style="width: 23%;" class="text-center">Townscript</th>
+                                    <th style="width: 23%;" class="text-center">Explara</th>
+                                    <th style="width: 23%; color: var(--eventflow-primary);" class="text-center fw-bold">EventFlow</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Commission on ₹10L sales</td>
+                                    <td class="text-center text-danger">₹1.5L – ₹2L</td>
+                                    <td class="text-center text-danger">₹1L – ₹1.5L</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">₹15,000 flat</td>
+                                </tr>
+                                <tr>
+                                    <td>Payout time</td>
+                                    <td class="text-center">5–7 days</td>
+                                    <td class="text-center">3–5 days</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">Next day</td>
+                                </tr>
+                                <tr>
+                                    <td>Custom fields</td>
+                                    <td class="text-center text-danger">Limited</td>
+                                    <td class="text-center text-danger">Paid</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">Free, 2hr turnaround</td>
+                                </tr>
+                                <tr>
+                                    <td>Event-day support</td>
+                                    <td class="text-center text-danger">Email ticket</td>
+                                    <td class="text-center text-danger">Chatbot</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">WhatsApp me directly</td>
+                                </tr>
+                                <tr>
+                                    <td>Data export</td>
+                                    <td class="text-center">CSV</td>
+                                    <td class="text-center text-danger">Locked</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">CSV, anytime</td>
+                                </tr>
+                                <tr>
+                                    <td>White label</td>
+                                    <td class="text-center text-danger">Not available</td>
+                                    <td class="text-center text-danger">₹50k+</td>
+                                    <td class="text-center fw-bold" style="color: var(--eventflow-primary);">₹20k (or free for annual)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted small text-center mb-0 mt-3">
+                        On a ₹10L event, you save <strong>₹1.35L – ₹1.85L</strong> by choosing EventFlow.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

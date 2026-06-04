@@ -1,8 +1,9 @@
+{% load static %}
 <nav class="navbar navbar-expand-lg bg-light shadow-sm" style="z-index: 444; position: fixed; top: 0; width: 100vw;">
   <div class="container">
 
     <a class="navbar-brand navbar-brand-custom" href="{% url 'dashboard' %}">
-        Event<span class="brand-accent">Flow</span>
+        <img src="{% static 'images/eventflow-logo.svg' %}" alt="EventFlow" height="28">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,11 +55,26 @@
 
 
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function becomeOrganizer() {
     fetch('{% url "become-organizer-api" %}', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': getCookie('csrftoken'),
             'Content-Type': 'application/json'
         }
     })
@@ -77,3 +93,4 @@ function becomeOrganizer() {
     });
 }
 </script>
+<form method="post" class="d-none">{% csrf_token %}</form>

@@ -1,4 +1,5 @@
 
+{% load static %}
 {% load nav_extras %}
 
 
@@ -12,8 +13,7 @@
   left: 0;
   height: 100vh;
   width: 250px;
-  background-color: rgb(66, 82, 57) !important;
-  /* same theme color */
+  background-color: #1C1C21 !important;
   overflow-y: auto;
   transition: all 0.3s ease;
   z-index: 1030;
@@ -38,7 +38,7 @@
     display: inline-block;
     font-size: 1.8rem; /* Make it a bit bigger since it's alone */
     font-weight: 800;
-    color: #9be2b6; /* Match your mint green theme */
+    color: var(--eventflow-primary);
 }
 
 /* Ensure the brand container doesn't cause overflow in shrinked mode */
@@ -52,8 +52,7 @@
 /* Shrinked sidebar */
 #sidebar.shrinked {
   width: 80px;
-  background-color: rgb(66, 82, 57) !important;
-  /* keep same bg color */
+  background-color: #1C1C21 !important;
 }
 
 /* Hide text but keep icons centered */
@@ -134,9 +133,8 @@
 
 <div id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
   <a class="navbar-brand navbar-brand-custom mx-auto my-3 d-flex justify-content-center" href="{% url 'dashboard' %}">
-    <span class="logo-full">Event<span class="brand-accent">Flow</span></span>
-    
-    <span class="logo-short">E<span class="brand-accent">F</span></span>
+    <img src="{% static 'images/eventflow-logo.svg' %}" alt="EventFlow" height="32" class="logo-full">
+    <span class="logo-short">EF</span>
   </a>
   {% if request.user.current_role.name == 'organizer' %}
   <ul class="nav nav-pills flex-column mb-auto">

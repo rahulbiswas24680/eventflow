@@ -59,25 +59,31 @@ class RSVPListCreateView(generics.ListCreateAPIView):
     search_fields = ['attendee__username', 'attendee__email']
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(attendee=self.request.user)
+        queryset = super().get_queryset()
         event_id = self.request.query_params.get("event")
         status = self.request.query_params.get("status")
         ticket = self.request.query_params.get("ticket")
 
         if event_id:
+            # Organizer view: return all RSVPs for the event
             queryset = queryset.filter(event_id=event_id)
+            # Security: only the event's organizer may view attendees
+            if not queryset.filter(event__organizer__user=self.request.user).exists():
+                return RSVP.objects.none()
+        else:
+            # Attendee view: only the user's own RSVPs
+            queryset = queryset.filter(attendee=self.request.user)
 
         # 🧩 Filter by status
         if status == "attended":
             queryset = queryset.filter(is_attended=True)
         elif status == "registered":
-            queryset = queryset.filter(is_attended=False)
+            queryset = queryset.filter(is_cancelled=False)
         elif status == "cancelled":
             queryset = queryset.filter(is_cancelled=True)
-        
+
         if ticket:
             queryset = queryset.filter(transaction__ticket_type__id=ticket)
-        print(queryset)
         return queryset.order_by("created_at")
     
     def list(self, request, *args, **kwargs):
@@ -85,10 +91,11 @@ class RSVPListCreateView(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
 
-        # 🧮 Calculate stats
-        total_registered = queryset.count()
-        attended_count = queryset.filter(is_attended=True).count()
-        pending_count = queryset.filter(is_attended=False, is_cancelled=False).count()
+        # 🧮 Calculate stats (always against non-cancelled RSVPs)
+        base = queryset.filter(is_cancelled=False)
+        total_registered = base.count()
+        attended_count = base.filter(is_attended=True).count()
+        pending_count = base.filter(is_attended=False).count()
         attendance_rate = (
             round((attended_count / total_registered) * 100, 2)
             if total_registered > 0

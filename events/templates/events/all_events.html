@@ -1,0 +1,341 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}Browse Events{% endblock %}
+
+{% block content %}
+<style>
+    .event-card-image {
+        height: 200px;
+        object-fit: cover;
+    }
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+    .upcoming-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+    }
+    .event-card-img-wrapper {
+        position: relative;
+        overflow: hidden;
+    }
+    .event-card-img-wrapper .card-img-top {
+        transition: transform 0.3s;
+    }
+    .card:hover .event-card-img-wrapper .card-img-top {
+        transform: scale(1.05);
+    }
+    .event-card-img-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(transparent, rgba(0,0,0,0.3));
+        pointer-events: none;
+    }
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .category-btn {
+        border-radius: 50px;
+        padding: 6px 18px;
+        font-size: 0.875rem;
+        margin: 3px;
+        transition: all 0.2s;
+    }
+    .category-btn.active {
+        background: var(--eventflow-primary, #0d6efd);
+        color: white;
+        border-color: var(--eventflow-primary, #0d6efd);
+    }
+    .empty-state {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        border: 2px dashed #dee2e6;
+    }
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    .upcoming-card {
+        border-color: #28a745 !important;
+        border-width: 2px !important;
+    }
+    .event-price {
+        font-weight: 600;
+        color: #198754;
+    }
+    .filter-active {
+        background-color: #e7f1ff;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+</style>
+
+<section class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="bi bi-grid-3x3-gap text-primary me-2"></i>Browse Events
+            </h1>
+            <p class="text-muted mb-0">Discover events happening near you and online</p>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'create-event' %}" class="btn btn-primary d-none d-md-inline-block">
+            <i class="fas fa-plus me-2"></i>Create Event
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section mb-4 shadow-sm">
+        <form method="GET" action="{% url 'events-list' %}" id="filter-form">
+            <div class="row g-3 align-items-end">
+                <!-- Search -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-semibold text-muted">
+                        <i class="bi bi-search me-1"></i>Search
+                    </label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search events..." value="{{ search_query }}">
+                </div>
+
+                <!-- Category -->
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold text-muted">
+                        <i class="bi bi-tag me-1"></i>Category
+                    </label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Filter -->
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold text-muted">
+                        <i class="bi bi-calendar me-1"></i>Date
+                    </label>
+                    <div>
+                        <div class="btn-group w-100" role="group">
+                            <a href="?date=all{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                               class="btn btn-outline-secondary category-btn {% if date_filter == 'all' %}active{% endif %}">All</a>
+                            <a href="?date=upcoming{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                               class="btn btn-outline-success category-btn {% if date_filter == 'upcoming' %}active{% endif %}">Upcoming</a>
+                            <a href="?date=past{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                               class="btn btn-outline-secondary category-btn {% if date_filter == 'past' %}active{% endif %}">Past</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit / Clear -->
+                <div class="col-12 col-md-2">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                        <a href="{% url 'events-list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-circle me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filters Info -->
+    {% if selected_category or search_query or date_filter != 'all' %}
+    <div class="filter-active mb-3 d-flex align-items-center gap-2 flex-wrap">
+        <span class="small fw-semibold text-muted"><i class="bi bi-funnel-fill me-1"></i>Active filters:</span>
+        {% if selected_category %}<span class="badge bg-primary">{{ selected_category }}</span>{% endif %}
+        {% if search_query %}<span class="badge bg-info text-dark">Search: "{{ search_query }}"</span>{% endif %}
+        {% if date_filter != 'all' %}<span class="badge bg-secondary">{{ date_filter|capfirst }}</span>{% endif %}
+        <span class="text-muted small ms-auto">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_events }} events</span>
+    </div>
+    {% endif %}
+
+    <!-- Events Grid -->
+    {% if events %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for event in events %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 {% if event.date > now %}upcoming-card{% endif %}">
+                <!-- Event Image -->
+                <div class="event-card-img-wrapper">
+                    {% if event.images.all %}
+                    <div id="eventSlide{{ event.id }}" class="carousel slide" data-bs-interval="false">
+                        <div class="carousel-inner">
+                            {% for img in event.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ img.image.url }}" class="d-block w-100 event-card-image" alt="{{ event.name }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if event.images.all.count > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#eventSlide{{ event.id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#eventSlide{{ event.id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <img src="https://images.pexels.com/photos/15448073/pexels-photo-15448073.jpeg" 
+                         class="card-img-top event-card-image" alt="{{ event.name }}">
+                    {% endif %}
+                    {% if event.date > now %}
+                    <span class="badge bg-success upcoming-badge">
+                        <i class="bi bi-clock me-1"></i>Upcoming
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <!-- Title & Category -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ event.name|truncatechars:40 }}</h5>
+                        {% if event.metadata.category %}
+                        <span class="badge bg-light text-dark ms-2 flex-shrink-0">{{ event.metadata.category }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="card-text text-muted small flex-grow-1">{{ event.description|truncatewords:20 }}</p>
+
+                    <!-- Meta Info -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            <small>{{ event.date|date:"M j, Y, g:i a" }}</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                            <small>{{ event.location|default:"Online"|truncatechars:30 }}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user text-info me-2"></i>
+                            <small class="text-muted">{{ event.organizer.organizer_name }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="event-price">
+                            {% if event.price_range %}
+                            <i class="fas fa-tag me-1"></i>{{ event.price_range }}
+                            {% else %}
+                            <span class="text-muted">Free</span>
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'event-detail' event.id %}" class="btn btn-dark btn-sm px-3">
+                            View Details <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Events pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter != 'all' %}&date={{ date_filter }}{% endif %}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter != 'all' %}&date={{ date_filter }}{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter != 'all' %}&date={{ date_filter }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter != 'all' %}&date={{ date_filter }}{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter != 'all' %}&date={{ date_filter }}{% endif %}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="text-center mt-3">
+        <small class="text-muted">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            ({{ total_events }} events total)
+        </small>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-calendar2-event"></i>
+        </div>
+        <h3 class="mb-3">No Events Found</h3>
+        <p class="text-muted mb-4">
+            {% if selected_category or search_query or date_filter != 'all' %}
+            No events match your current filters. Try adjusting your search criteria.
+            {% else %}
+            There are no published events yet. Check back later!
+            {% endif %}
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if selected_category or search_query or date_filter != 'all' %}
+            <a href="{% url 'events-list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-2"></i>Clear Filters
+            </a>
+            {% endif %}
+            <a href="{% url 'events-home' %}" class="btn btn-primary">
+                <i class="bi bi-house me-2"></i>Go Home
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

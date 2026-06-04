@@ -21,6 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
+# Site admin info & branding
+ADMIN_NAME = config("ADMIN_NAME", default="Rahul Biswas")
+ADMIN_PHONE = config("ADMIN_PHONE", default="+91XXXXXXXXXX")
+ADMIN_WHATSAPP = config("ADMIN_WHATSAPP", default="https://wa.me/91XXXXXXXXXX")
+ADMIN_EMAIL = config("ADMIN_EMAIL", default="rahulbss16@gmail.com")
+DEMO_MODE = config("DEMO_MODE", default=True, cast=bool)
+SITE_TAGLINE = config("SITE_TAGLINE", default="Sell tickets in 5 minutes. Keep 100% of your money.")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 
@@ -81,6 +89,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 'django.template.context_processors.media',
+                'events.context_processors.site_info',
             ],
         },
     },

@@ -72,7 +72,7 @@
             <div class="col-md-2">
               <label for="inputZip" class="form-label">Zip</label>
               <input type="text" class="form-control" id="inputZip" placeholder="666666" maxlength="6" required>
-              <span id="pincode-result"></span>
+              
             </div>
             <!-- <div class="col-12">
               <div class="form-check">
@@ -274,28 +274,7 @@
       }
     });
 
-    $('#inputZip').on('blur', function () {
-      const pin = $('#inputZip').val().trim();
-      const $result = $('#pincode-result');
-
-      if (!/^[1-9][0-9]{5}$/.test(pin)) {
-        $result.text('❌ Invalid PIN format. Must be 6 digits, no leading zero.').css('color', 'red');
-        return;
-      }
-
-      // Optional: Call India Post API
-      $.get(`https://api.postalpincode.in/pincode/${pin}`, function (data) {
-        if (data[0].Status === "Success" && data[0].PostOffice.length > 0) {
-          $result.html(`✅ Valid! District: <strong>${data[0].PostOffice[0].District}</strong>, State: <strong>${data[0].PostOffice[0].State}</strong>`).css('color', 'green');
-        } else {
-          $result.text('❌ PIN code not found in database.').css('color', 'red');
-        }
-      }).fail(function () {
-        $result.text('⚠️ Could not verify PIN. Format is correct though.').css('color', 'orange');
-      });
-    });
-
-    // Example: Load states for Nigeria when page is ready
+    // Load states for India
     loadStates('India');
 
     $("#checkoutBtn").on("click", function (e) {

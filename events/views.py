@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Count, F, Q, Sum, OuterRef, Subquery
+from django.db.models import Count, F, Q, Sum, OuterRef, Subquery, Value
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -22,6 +22,8 @@ from weasyprint import HTML
 
 from qr_codes.models import QRCode
 from user_profiles.models import CustomUser, Organizer, Role
+
+from payments.models import Transaction
 
 from .api.serializers import EventDetailSerializer, EventSerializer
 from .models import RSVP, Event, EventImage, TicketType
@@ -45,13 +47,15 @@ def user_profile(request):
         
         # Calculate stats for these events
         for event in recent_events:
-            # Get attendance stats
-            stats = RSVP.objects.filter(event=event, is_completed=True).aggregate(
-                registered=Count('id'),
-                revenue=Sum('total_charge')
-            )
-            event.registered_count = stats['registered'] or 0
-            event.revenue = stats['revenue'] or 0
+            # Get registered count (non-cancelled RSVPs)
+            registered_count = RSVP.objects.filter(event=event, is_cancelled=False).count()
+            # Get revenue from successful transactions
+            revenue = Transaction.objects.filter(
+                ticket_type__event=event,
+                payment_status='SUCCESS'
+            ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
+            event.registered_count = registered_count
+            event.revenue = revenue
             
         context['recent_events'] = recent_events
     else:
@@ -209,27 +213,99 @@ class OrganizerListView(LoginRequiredMixin, ListView):
 
 # @login_required
 def events_home(request):
-    # Publicly visible events
-    events = Event.objects.filter(is_published=True, is_active=True).select_related('organizer')
+    from django.db.models import Count, Min, Q
 
-    context = {"events": events}
+    # Publicly visible events with ticket types prefetched for price stats
+    events = Event.objects.filter(is_published=True, is_active=True).select_related(
+        'organizer'
+    ).prefetch_related('tickettype_set')
+
+    stats = {}
+    if events:
+        stats['total_events'] = events.count()
+        stats['category_count'] = Event.objects.filter(
+            is_published=True, is_active=True
+        ).exclude(
+            Q(metadata__category__isnull=True) | Q(metadata__category__exact='')
+        ).values('metadata__category').distinct().count()
+        stats['free_events'] = events.filter(tickettype__price=0).distinct().count()
+        min_price = events.aggregate(min=Min('tickettype__price'))['min']
+        stats['min_price'] = min_price if min_price is not None else 0
+
+    context = {"events": events, "stats": stats}
 
     if request.user.is_authenticated:
-        # Get organizer profile if user is an organizer
         organizer = Organizer.objects.filter(user=request.user).first()
         if organizer:
             context["can_create_event"] = True
-            # Show user's own events (drafts/unpublished)
             user_events = Event.objects.filter(organizer=organizer).select_related('organizer')
             context["user_events"] = user_events
     else:
-        # Guest users can only see published events
         context["can_create_event"] = False
 
     return render(request, "events/events_home.html", context)
 
 
-# @login_required
+def all_events(request):
+    events = Event.objects.filter(
+        is_published=True, is_active=True
+    ).select_related('organizer').prefetch_related('images', 'tickettype_set')
+
+    categories = Event.objects.filter(
+        is_published=True, is_active=True,
+        metadata__category__isnull=False
+    ).values_list('metadata__category', flat=True).distinct().order_by('metadata__category')
+
+    category = request.GET.get('category', '')
+    if category:
+        events = events.filter(metadata__category=category)
+
+    search_query = request.GET.get('search', '')
+    if search_query:
+        events = events.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(location__icontains=search_query)
+        )
+
+    date_filter = request.GET.get('date', 'all')
+    now = timezone.now()
+    if date_filter == 'upcoming':
+        events = events.filter(date__gt=now)
+    elif date_filter == 'past':
+        events = events.filter(date__lt=now)
+
+    total_events = events.count()
+
+    paginator = Paginator(events, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    for event in page_obj:
+        tickets = list(event.tickettype_set.all())
+        if tickets:
+            prices = [t.price for t in tickets]
+            min_p = min(prices)
+            max_p = max(prices)
+            event.price_range = f"₹{min_p}" if min_p == max_p else f"₹{min_p} - ₹{max_p}"
+        else:
+            event.price_range = "Free"
+
+    context = {
+        'events': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'categories': categories,
+        'selected_category': category,
+        'search_query': search_query,
+        'date_filter': date_filter,
+        'total_events': total_events,
+        'now': now,
+    }
+
+    return render(request, 'events/all_events.html', context)
+
+
 def event_detail(request, event_id):
     event = Event.objects.select_related('organizer').prefetch_related('images', 'tickettype_set').get(id=event_id)
     images = event.images.all()
@@ -594,6 +670,14 @@ class OrganizerCreateView(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
 
+def about_page(request):
+    return render(request, 'events/about.html', {})
+
+
+def pricing_page(request):
+    return render(request, 'events/pricing.html', {})
+
+
 def ticket_preview(request, rsvp_id):
     # Get the RSVP/ticket object
     rsvp = get_object_or_404(RSVP, id=rsvp_id)
@@ -691,17 +775,17 @@ def dashboard(request):
         upcoming_events = organized_events.filter(date__gt=today, is_active=True, is_published=True).count()
         past_events = organized_events.filter(date__lt=today, is_active=True, is_published=True).count()
         
-        # Attendance Analytics
+        # Attendance Analytics (all non-cancelled registrations)
         total_attendees = RSVP.objects.filter(
             event__organizer__user=request.user,
-            is_completed=True # Only count completed RSVPs as attendees
+            is_cancelled=False
         ).count()
         
-        # Revenue
-        total_revenue = RSVP.objects.filter(
-            event__organizer__user=request.user,
-            is_completed=True
-        ).aggregate(total=Sum('total_charge'))['total'] or 0
+        # Revenue (based on successful payments, not attendance)
+        total_revenue = Transaction.objects.filter(
+            ticket_type__event__organizer__user=request.user,
+            payment_status='SUCCESS'
+        ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
 
         
         # Get ticket type capacity per event
@@ -711,10 +795,10 @@ def dashboard(request):
             total_capacity=Sum('quantity_available')
         ).values('total_capacity')[:1]
         
-        # Get RSVP counts per event
+        # Get RSVP counts per event (non-cancelled registrations)
         rsvp_count_subquery = RSVP.objects.filter(
             event_id=OuterRef('id'),
-            is_completed=True
+            is_cancelled=False
         ).values('event_id').annotate(
             count=Count('id')
         ).values('count')[:1]
@@ -753,13 +837,22 @@ def dashboard(request):
         
         rsvp_by_month = RSVP.objects.filter(
             event__organizer__user=request.user,
-            is_completed=True,
+            is_cancelled=False,
             created_at__gte=months_ago_12
         ).annotate(
             month=TruncMonth('created_at')
         ).values('month').annotate(
             attendees=Count('id'),
-            revenue=Sum('total_charge')
+        ).order_by('month')
+        
+        txn_by_month = Transaction.objects.filter(
+            ticket_type__event__organizer__user=request.user,
+            payment_status='SUCCESS',
+            created_at__gte=months_ago_12
+        ).annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(
+            revenue=Sum(F('amount') * F('quantity'))
         ).order_by('month')
         
         events_by_month = organized_events.filter(
@@ -772,6 +865,7 @@ def dashboard(request):
         
         # Create lookup dicts for O(1) access
         rsvp_lookup = {item['month'].strftime('%Y-%m'): item for item in rsvp_by_month}
+        txn_lookup = {item['month'].strftime('%Y-%m'): item for item in txn_by_month}
         event_lookup = {item['month'].strftime('%Y-%m'): item for item in events_by_month}
         
         monthly_data = []
@@ -780,13 +874,14 @@ def dashboard(request):
             month_key = month_date.strftime('%Y-%m')
             
             month_rsvp = rsvp_lookup.get(month_key, {})
+            month_txn = txn_lookup.get(month_key, {})
             month_event = event_lookup.get(month_key, {})
             
             monthly_data.append({
                 'month': month_date.strftime('%b %Y'),
                 'events': month_event.get('count', 0),
                 'attendees': month_rsvp.get('attendees', 0),
-                'revenue': float(month_rsvp.get('revenue', 0) or 0)
+                'revenue': float(month_txn.get('revenue', 0) or 0)
             })
         
         monthly_data.reverse()
@@ -796,6 +891,32 @@ def dashboard(request):
             count=Count('id')
         ).order_by('-count') if Event._meta.get_field('metadata').null else [] # Check if metadata field exists and is not null
         
+        target_revenue = TicketType.objects.filter(
+            event__organizer__user=request.user,
+            event__is_active=True,
+        ).annotate(
+            potential=F('price') * F('quantity_available')
+        ).aggregate(total=Sum('potential'))['total'] or 0
+
+        no_show_history = RSVP.objects.filter(
+            event__organizer__user=request.user,
+            is_cancelled=False,
+            event__has_finished_event=True,
+        ).aggregate(
+            total_reg=Count('id'),
+            total_att=Count('id', filter=Q(is_attended=True)),
+        )
+        hist_reg = no_show_history['total_reg'] or 0
+        hist_att = no_show_history['total_att'] or 0
+        no_show_rate = round((1 - (hist_att / hist_reg)) * 100, 1) if hist_reg > 0 else 0
+
+        upcoming_registered = RSVP.objects.filter(
+            event__organizer__user=request.user,
+            is_cancelled=False,
+            event__date__gt=today,
+        ).count()
+        predicted_attendance = round(upcoming_registered * (1 - no_show_rate / 100)) if no_show_rate > 0 else upcoming_registered
+
         context = {
             'role': 'organizer',
             'total_events': total_events,
@@ -808,6 +929,10 @@ def dashboard(request):
             'monthly_data_json': json.dumps(monthly_data, cls=DjangoJSONEncoder),
             'event_categories': event_categories,
             'recent_events': organized_events.order_by('-created_at')[:5],
+            'target_revenue': target_revenue,
+            'no_show_rate': no_show_rate,
+            'predicted_attendance': predicted_attendance,
+            'upcoming_registered': upcoming_registered,
         }
     
     # Attendee Dashboard
@@ -816,18 +941,18 @@ def dashboard(request):
         attendee_rsvps = RSVP.objects.filter(attendee=request.user)
         
         # Key Metrics
-        total_registered = attendee_rsvps.count()
-        attended_events = attendee_rsvps.filter(is_completed=True).count()
+        total_registered = attendee_rsvps.filter(is_cancelled=False).count()
+        attended_events = attendee_rsvps.filter(is_attended=True).count()
         upcoming_events = attendee_rsvps.filter(
+            is_cancelled=False,
             event__date__gt=today,
-            is_completed=True # Only count completed RSVPs for upcoming
         ).count()
         cancelled_events = attendee_rsvps.filter(is_cancelled=True).count()
         
-        # Event Categories attended (assuming 'category' field exists in Event model metadata)
+        # Event Categories attended
         if Event._meta.get_field('metadata').null:
             category_distribution = attendee_rsvps.filter(
-                is_completed=True
+                is_attended=True
             ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count')
         else:
             category_distribution = []
@@ -839,11 +964,12 @@ def dashboard(request):
             month_end = (month_start + timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
             
             month_registrations = attendee_rsvps.filter(
-                created_at__range=[month_start, month_end]
+                created_at__range=[month_start, month_end],
+                is_cancelled=False
             ).count()
             month_attended = attendee_rsvps.filter(
                 event__date__range=[month_start, month_end],
-                is_completed=True
+                is_attended=True
             ).count()
             
             monthly_activity.append({
@@ -854,6 +980,14 @@ def dashboard(request):
         
         monthly_activity.reverse()
         
+        # Spending by Event Category
+        spending_by_category = Transaction.objects.filter(
+            user=request.user,
+            payment_status='SUCCESS'
+        ).values('ticket_type__event__metadata__category').annotate(
+            total=Sum(F('amount') * F('quantity'))
+        ).order_by('-total')
+        
         context = {
             'role': 'attendee',
             'total_registered': total_registered,
@@ -863,6 +997,8 @@ def dashboard(request):
             'category_distribution': category_distribution,
             'monthly_activity_json': json.dumps(monthly_activity, cls=DjangoJSONEncoder),
             'recent_registrations': attendee_rsvps.select_related('event').order_by('-created_at')[:5],
+            'spending_by_category': list(spending_by_category),
+            'spending_by_category_json': json.dumps(list(spending_by_category), cls=DjangoJSONEncoder),
         }
     
     return render(request, 'events/dashboard.html', context)
@@ -1022,14 +1158,14 @@ def dashboard_chart_data(request):
                 month_attendees = RSVP.objects.filter(
                     event__organizer__user=request.user,
                     created_at__range=[month_start, month_end],
-                    is_completed=True
+                    is_cancelled=False
                 ).count()
                 
-                month_revenue = RSVP.objects.filter(
-                    event__organizer__user=request.user,
+                month_revenue = Transaction.objects.filter(
+                    ticket_type__event__organizer__user=request.user,
+                    payment_status='SUCCESS',
                     created_at__range=[month_start, month_end],
-                    is_completed=True
-                ).aggregate(total=Sum('total_charge'))['total'] or 0
+                ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0
                 
                 data.append({
                     'month': month_start.strftime('%b %Y'),
@@ -1059,13 +1195,14 @@ def dashboard_chart_data(request):
                 month_end = (month_start + timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
                 
                 month_registrations = attendee_rsvps.filter(
-                    created_at__range=[month_start, month_end]
+                    created_at__range=[month_start, month_end],
+                    is_cancelled=False
                 ).count()
                 month_attended = attendee_rsvps.filter(
                     event__date__range=[month_start, month_end],
-                    is_completed=True
+                    is_attended=True
                 ).count()
-                
+
                 monthly_activity.append({
                     'month': month_start.strftime('%b %Y'),
                     'registrations': month_registrations,
@@ -1077,7 +1214,7 @@ def dashboard_chart_data(request):
         elif chart_type == 'category_distribution':
             if Event._meta.get_field('metadata').null:
                 category_distribution = attendee_rsvps.filter(
-                    is_completed=True
+                    is_attended=True
                 ).values('event__metadata__category').annotate(count=Count('id')).order_by('-count')
             else:
                 category_distribution = []

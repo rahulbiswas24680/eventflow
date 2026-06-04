@@ -84,26 +84,86 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Charts Row -->
-    <div class="row">
-        <!-- Monthly Growth Chart -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Monthly Growth</h6>
-                </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="chart-area" style="position: relative; height: 40vh; min-height: 300px;">
-                        <canvas id="monthlyGrowthChart"></canvas>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Revenue vs Target</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ total_revenue }} / ₹{{ target_revenue }}</div>
+                            <div class="progress mt-2" style="height: 6px;">
+                                {% if target_revenue > 0 %}
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    style="width: {% widthratio total_revenue target_revenue 100 %}%;"
+                                    aria-valuenow="{% widthratio total_revenue target_revenue 100 %}"
+                                    aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Registration Funnel -->
-        <div class="col-xl-4 col-lg-5">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                No-show Prediction</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ no_show_rate }}%</div>
+                            <small class="text-muted">{{ predicted_attendance }} of {{ upcoming_registered }} expected to attend</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Revenue Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-success">Revenue</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="position: relative; height: 35vh; min-height: 280px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendees & Events Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Attendees & Events</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="position: relative; height: 35vh; min-height: 280px;">
+                        <canvas id="attendeesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Funnel & Predictions Row -->
+    <div class="row">
+        <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Registration Funnel</h6>
@@ -132,6 +192,42 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Attendance Prediction</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="fw-bold text-info">{{ no_show_rate }}%</h4>
+                            <small class="text-muted">No-show Rate</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="fw-bold text-success">{{ predicted_attendance }}</h4>
+                            <small class="text-muted">Predicted Attendance</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Registered</small>
+                            <small>{{ upcoming_registered }}</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                style="width: {% widthratio predicted_attendance upcoming_registered 100 %}%;"
+                                aria-valuenow="{% widthratio predicted_attendance upcoming_registered 100 %}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>Expected to attend</small>
+                            <small class="text-success">{{ predicted_attendance }} / {{ upcoming_registered }}</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -258,14 +354,27 @@
 
     <!-- Attendee Charts -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Event Activity</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-bar" style="position: relative; min-height: 300px;">
+                    <div class="chart-area" style="position: relative; height: 35vh; min-height: 280px;">
                         <canvas id="attendeeActivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Spending by Category</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="position: relative; height: 35vh; min-height: 280px;">
+                        <canvas id="spendingCategoryChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -300,8 +409,8 @@
                                         <td>{{ registration.event.location }}</td>
                                         <td>
                                             <span
-                                                class="badge bg-{% if registration.is_completed %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
-                                                {% if registration.is_completed %}Attended
+                                                class="badge bg-{% if registration.is_attended %}success{% elif registration.is_cancelled %}danger{% else %}warning{% endif %}">
+                                                {% if registration.is_attended %}Attended
                                                 {% elif registration.is_cancelled %}Cancelled{% else %}Registered{% endif %}
                                             </span>
                                         </td>
@@ -339,8 +448,51 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("MonthlyData:", monthlyData);
     console.log("MonthlyActivity:", monthlyActivity);
 
-    function renderMonthlyGrowthChart() {
-        const ctx = document.getElementById('monthlyGrowthChart');
+    function renderRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx || monthlyData.length === 0) return;
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(i => i.month),
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: monthlyData.map(i => i.revenue),
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    borderColor: '#28a745',
+                    borderWidth: 2,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return '₹' + ctx.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderAttendeesChart() {
+        const ctx = document.getElementById('attendeesChart');
         if (!ctx || monthlyData.length === 0) return;
 
         new Chart(ctx, {
@@ -349,30 +501,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: monthlyData.map(i => i.month),
                 datasets: [
                     {
-                        label: 'Events',
-                        data: monthlyData.map(i => i.events),
-                        borderColor: 'rgba(78, 115, 223, 1)',
-                        backgroundColor: 'rgba(78, 115, 223, 0.2)',
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
                         label: 'Attendees',
                         data: monthlyData.map(i => i.attendees),
-                        borderColor: 'rgba(28, 200, 138, 1)',
-                        backgroundColor: 'rgba(28, 200, 138, 0.2)',
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.3,
+                        pointBackgroundColor: '#0d6efd',
+                        pointRadius: 4
                     },
                     {
-                        label: 'Revenue',
-                        data: monthlyData.map(i => i.revenue),
-                        borderColor: 'rgba(255, 193, 7, 1)',
-                        backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                        label: 'Events',
+                        data: monthlyData.map(i => i.events),
+                        borderColor: '#F7931E',
+                        backgroundColor: 'rgba(247, 147, 30, 0.15)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.3,
+                        pointBackgroundColor: '#F7931E',
+                        pointRadius: 4,
+                        borderDash: [5, 5]
                     }
                 ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
         });
     }
@@ -380,6 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAttendeeActivityChart() {
         const ctx = document.getElementById('attendeeActivityChart');
         if (!ctx || monthlyActivity.length === 0) return;
+
+        const colors = ['#4e73df', '#1cc88a', '#f6c23e', '#e74a3b', '#36b9cc', '#f39c12'];
 
         new Chart(ctx, {
             type: 'bar',
@@ -389,28 +549,74 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         label: 'Registrations',
                         data: monthlyActivity.map(i => i.registrations),
-                        backgroundColor: 'rgba(78, 115, 223, 0.8)',
-                        borderColor: 'rgba(78, 115, 223, 1)',
+                        backgroundColor: colors.map(c => c + '99'),
+                        borderColor: colors,
                         borderWidth: 1
                     },
                     {
                         label: 'Attended',
                         data: monthlyActivity.map(i => i.attended),
-                        backgroundColor: 'rgba(28, 200, 138, 0.8)',
-                        borderColor: 'rgba(28, 200, 138, 1)',
-                        borderWidth: 1
+                        backgroundColor: colors.map(c => c + 'CC'),
+                        borderColor: colors,
+                        borderWidth: 2
                     }
                 ]
             }
         });
     }
 
+    function renderSpendingCategoryChart() {
+        const ctx = document.getElementById('spendingCategoryChart');
+        const raw = JSON.parse(`{{ spending_by_category_json|default:"[]"|escapejs }}`);
+        if (!ctx || raw.length === 0) return;
+
+        const labels = raw.map(i => i.ticket_type__event__metadata__category || 'Uncategorized');
+        const data = raw.map(i => i.total);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#f6c23e', '#e74a3b',
+                        '#36b9cc', '#f39c12', '#9b59b6', '#2ecc71',
+                        '#e67e22', '#3498db'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                                return '₹' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     if (role === 'organizer') {
         console.log('Organizer charts rendering...');
-        renderMonthlyGrowthChart();
+        renderRevenueChart();
+        renderAttendeesChart();
     } else if (role === 'attendee') {
         console.log('Attendee charts rendering...');
         renderAttendeeActivityChart();
+        renderSpendingCategoryChart();
     }
 });
 </script>

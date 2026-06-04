@@ -13,11 +13,11 @@
     .organizer-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        border-color: #4dabf7;
+        border-color: var(--eventflow-primary);
     }
     
     .organizer-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--eventflow-primary) 0%, var(--eventflow-primary-dark) 100%);
         color: white;
         padding: 1.5rem;
         margin: -1rem -1rem 1rem -1rem;
@@ -491,7 +491,7 @@ async function toggleOrganizerStatus(id, currentStatus) {
             showCancelButton: true,
             confirmButtonText: `Yes, ${currentStatus ? 'deactivate' : 'activate'} it!`,
             cancelButtonText: 'Cancel',
-            confirmButtonColor: currentStatus ? '#dc3545' : '#28a745'
+            confirmButtonColor: '#F7931E'
         });
         
         if (result.isConfirmed) {
@@ -537,7 +537,7 @@ async function deleteOrganizer(id) {
             text: "This action cannot be undone. All associated data will be lost.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
+            confirmButtonColor: '#F7931E',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Yes, delete it!',
             cancelButtonText: 'Cancel'

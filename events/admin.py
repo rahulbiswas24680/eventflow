@@ -43,3 +43,6 @@ class RSVPAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'is_cancelled', 'is_attended', 'created_at']
     search_fields = ['event__name', 'attendee__email', 'transaction_id']
     readonly_fields = ['created_at']
+
+
+admin.site.register(apps.get_model('events', 'EventImage'))

@@ -1,0 +1,100 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}About — EventFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="about-hero mb-5">
+                <img src="https://github.com/identicons/rahul.png" alt="{{ admin_name }}" class="mb-3">
+                <h1 class="display-6 fw-bold">Hi, I'm {{ admin_name }}</h1>
+                <p class="lead mb-0 opacity-90">I built EventFlow because I got tired of watching organisers lose money.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">The problem I saw</h5>
+                    <p class="text-muted">
+                        A friend organised a college fest. 800 tickets. All payments on UPI.
+                        On event day, 47 people showed screenshots of "successful" payments that never arrived.
+                        That's ₹23,500 lost. Townscript would take 20% commission. Google Sheets can't scan QR codes.
+                    </p>
+                    <p class="text-muted">
+                        There are 10,000+ events every month in India under 500 tickets.
+                        College fests. Startup meetups. Workshop. Corporate off-sites.
+                        The big players ignore them. The small players use WhatsApp + Excel.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">How EventFlow is different</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Zero commission</strong>
+                                    <p class="text-muted small mb-0">Flat ₹15k per event. You keep everything else.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Real human support</strong>
+                                    <p class="text-muted small mb-0">You get my WhatsApp. 9pm on event day? I'm awake.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Built for India</strong>
+                                    <p class="text-muted small mb-0">Stripe payments, INR pricing, WhatsApp delivery.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Your data, always</strong>
+                                    <p class="text-muted small mb-0">Export attendee list as CSV anytime. No lock-in.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">The offer</h5>
+                    <p class="text-muted">
+                        First event is <strong>free</strong>. I set everything up for you.
+                        You just share the link. If it doesn't work, you pay ₹0.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="https://wa.me/{{ admin_phone }}" class="btn btn-success">
+                            <i class="bi bi-whatsapp me-2"></i>Chat on WhatsApp
+                        </a>
+                        <a href="mailto:{{ admin_email }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-envelope me-2"></i>{{ admin_email }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center text-muted small">
+                Built with Django · Stripe · Celery · Postgres · Bootstrap
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
