@@ -1,0 +1,6 @@
+# Third-party assets and collected output are not this project's source.
+static/**      linguist-vendored
+staticfiles/** linguist-vendored
+
+# Django templates are HTML by syntax only; the application is Python.
+*.html         linguist-detectable=false
