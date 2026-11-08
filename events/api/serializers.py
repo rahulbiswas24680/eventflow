@@ -18,7 +18,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = "__all__"
-    
+
     def to_representation(self, obj):
         representation = super().to_representation(obj)
         representation['organizer'] = obj.organizer.organizer_name
@@ -67,17 +67,17 @@ class CurrencyAwareDecimalField(serializers.DecimalField):
 def convert_to_base_currency(amount, currency):
     if currency == "INR":
         return amount
-    
+
     from django.core.cache import cache
-    
+
     cache_key = f"forex_rate:{currency}:INR"
     conversion_rate = cache.get(cache_key)
-    
+
     if conversion_rate is None:
         c = CurrencyRates()
         conversion_rate = c.get_rate(currency, "INR")
         cache.set(cache_key, conversion_rate, timeout=86400)
-    
+
     converted_amount = amount * conversion_rate
     return converted_amount
 
@@ -101,7 +101,7 @@ class RSVPSerializer(serializers.ModelSerializer):
     ticket_qr = serializers.SerializerMethodField(read_only=True)
     ticket_type = serializers.SerializerMethodField(read_only=True)
     status = serializers.SerializerMethodField(read_only=True)
-    
+
     class Meta:
         model = RSVP
         fields = "__all__"
@@ -109,25 +109,25 @@ class RSVPSerializer(serializers.ModelSerializer):
 
     def get_ticket_qr(self, obj):
         try:
-            qr_obj = QRCode.objects.get(transaction__transaction_id=obj.transaction_id)
-            if qr_obj.code_image:
+            qr_obj = QRCode.objects.filter(transaction__transaction_id=obj.transaction_id).first()
+            if qr_obj and qr_obj.code_image:
                 request = self.context.get('request')
                 if request:
                     return request.build_absolute_uri(qr_obj.code_image.url)
                 return qr_obj.code_image.url
-        except QRCode.DoesNotExist:
+            return None
+        except Exception:
             return None
 
     def get_ticket_type(self, obj):
-        # ticket_price = obj.total_charge // obj.ticket_qty
-        # ticket = obj.event.tickettype_set.filter(price=ticket_price)
-        # print(ticket)
-        # return ticket[0].name if ticket else None
         try:
-            return obj.transaction.ticket_type.name
-        except Transaction.DoesNotExist:
+            transaction = getattr(obj, 'transaction', None)
+            if transaction and transaction.ticket_type:
+                return transaction.ticket_type.name
             return None
-        
+        except Exception:
+            return None
+
     def get_status(self, obj):
         if obj.is_attended:
             status = "attended"

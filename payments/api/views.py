@@ -133,6 +133,12 @@ class TicketCheckoutApiView(APIView):
                 except TicketType.DoesNotExist:
                     raise NotFound(f"Ticket with id {ticket_id} not found.")
 
+                if ticket_obj.quantity_available < int(quantity):
+                    return Response(
+                        {"error": f"Not enough tickets available for {ticket_obj.name}. Only {ticket_obj.quantity_available} left."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
                 if not ticket_obj.stripe_price_id:
                     return Response(
                         {"error": f"Stripe price ID missing for ticket {ticket_id}."},
@@ -190,7 +196,7 @@ class TicketCheckoutApiView(APIView):
 def stripe_webhook(request):
     """
     Stripe webhook handler - now delegates to Celery task for async processing.
-    
+
     Instead of processing everything synchronously (which blocks and can timeout),
     we queue the task and return immediately. This ensures:
     - Fast webhook response (< 50ms vs ~2s)
@@ -198,7 +204,7 @@ def stripe_webhook(request):
     - Background processing handles QR, RSVP, email
     """
     from ..tasks import process_checkout_session
-    
+
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     event = None
@@ -221,18 +227,18 @@ def stripe_webhook(request):
 
         if not user_id:
             return HttpResponse(status=400)
-        
+
         try:
             get_user_model().objects.get(id=user_id)
         except Exception:
             return HttpResponse(status=400)
-        
+
         # Update transaction with payment_intent from Stripe
         if payment_intent:
             Transaction.objects.filter(session_id=session_id).update(
                 transaction_id=payment_intent
             )
-        
+
         process_checkout_session.delay(session_id)
 
     return HttpResponse(status=200)
@@ -243,7 +249,7 @@ def transaction_qr(request):
     API endpoint to get QR code URL for a transaction by session_id.
     """
     from qr_codes.models import QRCode
-    
+
     session_id = request.GET.get("session_id")
     if not session_id:
         return JsonResponse({"error": "session_id required"}, status=400)

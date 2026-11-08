@@ -1,5 +1,7 @@
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.db import IntegrityError, transaction
 from rest_framework import filters, permissions, status
 from rest_framework.exceptions import NotAcceptable
@@ -37,9 +39,10 @@ def create_user(data, group_names=[]):
         validated_data = serializer.validated_data
 
         user_obj = serializer.save(
-            is_staff=False, is_superuser=False, groups=group_names
+            is_staff=False, is_superuser=False
         )
-        profile = CustomUser.objects.create(user=user_obj)
+        if group_names:
+            user_obj.groups.set(group_names)
 
         return user_obj
     else:
@@ -53,17 +56,17 @@ def validate_user(data):
     """
 
     username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
 
-    if str(username) and str(password):
+    if (str(username) or str(email)) and str(password):
         try:
-            user_obj = User.objects.get(username=username)
-            # print(user_obj)
-        except User.DoesNotExist as e:
-            return Response(
-                {"status": "error", "msg": "User does not exists"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            if username:
+                user_obj = User.objects.get(username=username)
+            else:
+                user_obj = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise Exception("User does not exist")
 
         if user_obj and check_password(password, user_obj.password):
             token = RefreshToken.for_user(user_obj)
@@ -84,10 +87,7 @@ def validate_user(data):
                 "permissions": permissions,
             }
     else:
-        return Response(
-            {"status": "error", "msg": "Please check username or password"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+        raise Exception("Please check username or password")
 
 
 class UserRegistrationApiView(APIView):
@@ -115,10 +115,9 @@ class UserRegistrationApiView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         print(data)
-        groups = Group.objects.all()
-        staff_groups = groups[0]
-        user_groups = groups[1]
-        if data and groups:
+        user_groups = Group.objects.filter(name='User Group').first() or Group.objects.first()
+        staff_groups = Group.objects.filter(name='Staff Group').first() or Group.objects.last()
+        if data:
             user_obj = create_user(
                 data,
                 group_names=[
@@ -165,10 +164,22 @@ class UserLoginApiView(APIView):
             res = validate_user(data)
             print(res)
 
-            ongoing_events_mail.delay(
-                user_name=request.user.username,
-                recipients=[request.user.email],
-            )
+            user_name = None
+            recipient_email = None
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                user_name = request.user.username
+                recipient_email = request.user.email
+            elif isinstance(res, dict) and 'user_id' in res:
+                u = User.objects.filter(id=res['user_id']).first()
+                if u:
+                    user_name = u.username
+                    recipient_email = u.email
+            if user_name and recipient_email:
+                ongoing_events_mail.delay(
+                    user_name=user_name,
+                    recipients=[recipient_email],
+                )
+            res['ongoing_events_mail'] = True
 
             return Response(
                 {"status": "success", "data": res}, status=status.HTTP_200_OK
