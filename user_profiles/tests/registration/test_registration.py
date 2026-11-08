@@ -1,5 +1,8 @@
 from django.urls import reverse
-from django.contrib.auth.models import Group, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+
+User = get_user_model()
 
 
 def test_user_registration(

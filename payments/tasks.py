@@ -43,11 +43,19 @@ def process_checkout_session(self, session_id: str):
                 txn.payment_status = 'SUCCESS'
                 payment_intent = txn.transaction_id
                 
-                ticket_obj = txn.ticket_type
                 user = txn.user
+                from events.models import TicketType
+                ticket_type = TicketType.objects.select_for_update().get(id=txn.ticket_type_id)
+                if ticket_type.quantity_available < txn.quantity:
+                    raise ValueError(
+                        f"Not enough tickets available for {ticket_type.name}. "
+                        f"Available: {ticket_type.quantity_available}, Requested: {txn.quantity}"
+                    )
+                ticket_type.quantity_available -= txn.quantity
+                ticket_type.save(update_fields=['quantity_available'])
                 
                 rsvp_obj = RSVP.objects.create(
-                    event=ticket_obj.event,
+                    event=ticket_type.event,
                     attendee=user,
                     transaction_id=txn.transaction_id,
                     ticket_qty=txn.quantity,

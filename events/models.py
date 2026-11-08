@@ -146,22 +146,10 @@ class RSVP(models.Model):
             self.is_completed = True
         elif self.is_cancelled:
             self.is_completed = False
-            
+
         # Auto-set is_active
         self.is_active = not (self.is_cancelled or self.is_completed or self.is_expired)
-        
-        # Handle ticket quantity when RSVP is completed - with race condition protection
-        if self.is_completed and not self.pk:
-            from django.db import transaction
-            with transaction.atomic():
-                # Lock the ticket type row to prevent over-selling
-                ticket_type = self.event.tickettype_set.select_for_update().first()
-                if ticket_type and ticket_type.quantity_available >= self.ticket_qty:
-                    ticket_type.quantity_available -= self.ticket_qty
-                    ticket_type.save(update_fields=['quantity_available'])
-                else:
-                    raise ValueError("Not enough tickets available")
-                
+
         super().save(*args, **kwargs)
 
     @property
